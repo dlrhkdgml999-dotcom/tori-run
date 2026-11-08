@@ -1,6 +1,6 @@
 /* 토리의 반짝 달리기 — 서비스 워커: 인터넷이 있으면 새 파일, 없으면 저장해 둔 것 */
-const CACHE = 'tori-run-v8';
-const FILES = ['./', 'index.html', 'css/style.css?v=8', 'js/art.js?v=8', 'js/questions.js?v=8', 'js/core.js?v=8', 'js/runner.js?v=8', 'js/story.js?v=8', 'js/map.js?v=8', 'js/screens.js?v=8',
+const CACHE = 'tori-run-v9';
+const FILES = ['./', 'index.html', 'css/style.css?v=9', 'js/art.js?v=9', 'js/questions.js?v=9', 'js/core.js?v=9', 'js/runner.js?v=9', 'js/story.js?v=9', 'js/map.js?v=9', 'js/screens.js?v=9',
   'fonts/fredoka.woff2',
   'fonts/jua-ko.woff2', 'fonts/jua-latin.woff2', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 self.addEventListener('install', (e) => {

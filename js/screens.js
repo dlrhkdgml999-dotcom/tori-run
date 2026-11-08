@@ -80,7 +80,7 @@ const UI = (() => {
     const badges = [0, 1, 2, 3].map((i) => `<span class="bdg ${(s.boss || {})[i] ? 'on' : ''}">${ART.badge(i, !!(s.boss || {})[i])}</span>`).join('');
     const journeyLabel = s.ended ? '🌈 여정 계속하기' : (Object.keys(s.stars).length ? '🗺️ 여정 이어 가기' : '🗺️ 여정 떠나기');
     app.innerHTML = `<div class="screen bg home ${night ? 'night' : ''}"><div class="deco"><i class="cl c1">${cloudSVG}</i><i class="cl c2">${cloudSVG}</i><i class="cl c3">${cloudSVG}</i><b class="sp s1">✦</b><b class="sp s2">✦</b><b class="sp s3">♥</b><b class="sp s4">✦</b>${fall}</div>
-      <div class="topbar" style="width:100%"><button class="iconbtn" data-a="settings" aria-label="설정">⚙️</button><div class="title"></div><button class="iconbtn rel" data-a="go" data-to="stamps" aria-label="칭찬 도장">🏅</button><button class="iconbtn" data-a="go" data-to="album" aria-label="앨범">🖼️</button>${carrotsHTML()}</div>
+      <div class="topbar" style="width:100%"><button class="iconbtn" data-a="settings" aria-label="설정">⚙️</button><button class="iconbtn" data-a="help" aria-label="놀이 방법">❓</button><div class="title"></div><button class="iconbtn rel" data-a="go" data-to="stamps" aria-label="칭찬 도장">🏅</button><button class="iconbtn" data-a="go" data-to="album" aria-label="앨범">🖼️</button>${carrotsHTML()}</div>
       <div class="logo">토리의 반짝 달리기<small>⭐ ${nStars}/36 · 🐾 ${nFr}/12 · <span class="gc">🥕</span> 황금 ${nGold}/36</small></div>
       <div class="badgeRow">${badges}</div>
       <div class="homeMain">
@@ -289,6 +289,20 @@ const UI = (() => {
       <p style="text-align:center;margin:0;font-size:21px;color:#9b8291">도장을 하나 받을 때마다 당근 20개!</p>
       <div class="stampGrid">${STAMPS.map((t) => `<div class="stampCard ${s.stamps[t.id] ? 'got' : ''}"><div class="stamp ${s.stamps[t.id] ? 'on' : ''}"><span>${t.icon}</span>${s.stamps[t.id] ? '<em>참 잘했어요</em>' : ''}</div><b>${t.name}</b><small>${t.desc}</small></div>`).join('')}</div></div>`;
   }
+
+  /* ---------- 놀이 방법 ---------- */
+  ACT.help = () => {
+    const rows = [
+      ['👆', '톡', '토리가 점프해요'], ['✊', '꾹', '더 높이 점프! (황금 당근은 높은 곳에)'], ['❓', '선물 구름', '밑에서 점프해서 머리로 콩!'],
+      ['✨', '황금 당근', '판마다 3개 숨어 있어요'], ['🔥', '3연속 정답', '무지개 별: 빨라지고 당근이 끌려와요'], ['🎈', '풍선', '하늘 당근 길을 둥실둥실'],
+      ['🏁', '깃대', '꾹 눌러 높이 잡을수록 보너스'], ['🦋', '황금 나비·🌠 별똥별', '보이면 톡! 당근 10'], ['☁️', '심술 구름', '문제 맞히면 당근을 던져요'],
+      ['🎁', '보너스 길', '보스를 이기면 하루 한 번 당근 비'], ['🍾', '병 편지', '지도 바다에 하루 한 번'], ['💡', '토리 힌트', '판마다 2번, 틀린 보기 하나 지우기'],
+      ['🔁', '다시 도전', '틀린 문제가 나중에 다시 나와요'], ['🏅', '칭찬 도장', '하나마다 당근 20'],
+    ];
+    modal(`<h2>❔ 놀이 방법</h2><div class="helpGrid">${rows.map(([i, a, b]) => `<div><span>${i}</span><b>${a}</b><small>${b}</small></div>`).join('')}</div>
+      <div class="row"><button class="btn" data-a="replayIntro">📖 이야기 다시 보기</button><button class="btn pink" data-a="closeModal">알겠어!</button></div>`, { x: true, cls: 'wide' });
+    Voice.say('톡 하면 점프, 꾹 누르면 더 높이 점프해! 선물 구름은 머리로 콩!');
+  };
 
   /* ---------- 설정 ---------- */
   ACT.settings = () => {

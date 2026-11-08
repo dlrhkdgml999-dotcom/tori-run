@@ -423,3 +423,10 @@ button { font-family: var(--font); color: var(--ink); cursor: pointer; border: 0
 .jbox.sunset .jmap { filter: sepia(.18) saturate(1.15) brightness(.98); }
 
 .newTag { position: absolute; top: 6px; left: 6px; z-index: 2; background: #ff6b6b; color: #fff; font-size: 15px; padding: 2px 9px; border-radius: 99px; animation: pop .5s; box-shadow: 0 2px 0 rgba(0,0,0,.12); }
+
+.modal.wide { max-width: min(96vw, 940px); }
+.helpGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; text-align: left; margin: 8px 0; }
+.helpGrid div { display: grid; grid-template-columns: 44px 1fr; grid-template-rows: auto auto; column-gap: 8px; background: #fff7fb; border-radius: 16px; padding: 8px 12px; }
+.helpGrid span { grid-row: span 2; font-size: 32px; align-self: center; text-align: center; }
+.helpGrid b { font-weight: normal; font-size: 21px; } .helpGrid small { font-size: 16px; color: var(--ink2); }
+@media (max-aspect-ratio: 1/1) { .helpGrid { grid-template-columns: 1fr; } }
