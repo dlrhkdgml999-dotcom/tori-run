@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>토리의 반짝 달리기</title>
+<meta name="theme-color" content="#ffd6e7">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css?v=1">
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="app"></div>
+<div id="fx"></div>
+<div id="toast"></div>
+<script src="js/art.js?v=1"></script>
+<script src="js/questions.js?v=1"></script>
+<script src="js/core.js?v=1"></script>
+<script src="js/runner.js?v=1"></script>
+<script src="js/screens.js?v=1"></script>
+<script>
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+</script>
+</body>
+</html>
