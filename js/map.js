@@ -65,7 +65,17 @@ const Journey = (() => {
     let s = `<svg class="jmap" viewBox="0 0 ${VW} ${VH}" preserveAspectRatio="xMinYMid meet">`;
     s += `<defs><linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a5d8ff"/><stop offset="1" stop-color="#d0ebff"/></linearGradient></defs><rect width="${VW}" height="${VH}" fill="url(#sea)"/>`;
     for (let i = 0; i < 46; i++) s += `<path d="M${(i * 211) % VW} ${60 + (i * 97) % 600} q14 -10 28 0 q14 10 28 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".7"/>`;
+    // 바다 물고기 (가끔 퐁!)
+    [[600, 650, 0], [1700, 120, 1.2], [2850, 660, 2.4], [3950, 110, 3.3], [1180, 300, 1.8], [3420, 330, 0.6]].forEach(([x, y, dl]) => {
+      s += `<g class="fish" style="animation-delay:${dl}s"><ellipse cx="${x}" cy="${y}" rx="26" ry="16" fill="${['#ffa94d', '#ff8fa3', '#74c0fc'][Math.round(dl) % 3]}" stroke="#6e5363" stroke-width="3"/><path d="M${x + 22} ${y} l18 -12 v24Z" fill="${['#ffa94d', '#ff8fa3', '#74c0fc'][Math.round(dl) % 3]}" stroke="#6e5363" stroke-width="3" stroke-linejoin="round"/><circle cx="${x - 12}" cy="${y - 4}" r="3.4" fill="#6e5363"/></g>`;
+    });
     for (let w = 0; w < 4; w++) s += island(w);
+    // 오늘의 병 편지
+    if (st.bottleDay !== today()) {
+      const spots = [[700, 90], [1820, 640], [2950, 80], [4100, 640], [520, 620]];
+      const [bx, by] = spots[new Date().getDate() % spots.length];
+      s += `<g class="bottle" data-a="bottle"><circle cx="${bx}" cy="${by}" r="58" fill="#fff" opacity=".001"/><ellipse cx="${bx}" cy="${by + 26}" rx="44" ry="10" fill="#fff" opacity=".6"/><rect x="${bx - 18}" y="${by - 34}" width="36" height="58" rx="14" fill="#c5f6fa" stroke="#6e5363" stroke-width="4"/><rect x="${bx - 8}" y="${by - 50}" width="16" height="18" rx="4" fill="#d08c60" stroke="#6e5363" stroke-width="3"/><rect x="${bx - 10}" y="${by - 16}" width="20" height="26" rx="3" fill="#fff3bf" stroke="#e8c36b" stroke-width="2" transform="rotate(-8 ${bx} ${by})"/><text x="${bx + 38}" y="${by - 30}" font-size="30">✨</text></g>`;
+    }
     // 다리 (보스를 이기면 생겨요)
     for (let w = 0; w < 3; w++) {
       const a = NODES[w * 4 + 3], b = NODES[w * 4 + 4];
@@ -106,6 +116,9 @@ const Journey = (() => {
       s += Story_place(got ? ART.friend(fr.id, got.top) : ART.friendShadow(fr.id), n.x + 74, n.y - 8, 64, got ? '' : 'opacity=".7"');
       s += `</g>`;
     });
+    // 다음 칸 화살표
+    const nn = NODES[nx];
+    if (nn && !cleared(nn)) s += `<g class="jarrow"><path d="M${nn.x - 26} ${nn.y - 196} h52 l-26 34Z" fill="#ff6b9d" stroke="#fff" stroke-width="5" stroke-linejoin="round"/><rect x="${nn.x - 48}" y="${nn.y - 250}" width="96" height="46" rx="23" fill="#ff6b9d" stroke="#fff" stroke-width="5"/><text x="${nn.x}" y="${nn.y - 217}" text-anchor="middle" font-family="Jua, sans-serif" font-size="28" fill="#fff">여기!</text></g>`;
     // 끝: 무지개 마을
     const last = NODES[NODES.length - 1];
     s += `<g transform="translate(${last.x + 230} ${last.y + 150})"><text x="0" y="0" text-anchor="middle" font-family="Jua, sans-serif" font-size="30" fill="#845ef7">무지개 마을 🏠</text></g>`;

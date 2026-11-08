@@ -14,12 +14,14 @@ const UI = (() => {
   const back = (to = 'home') => `<button class="iconbtn" data-a="go" data-to="${to}" aria-label="뒤로">⬅️</button>`;
 
   /* ---------- 공통 ---------- */
+  let unlocked = false;
   function go(name, arg) {
     Voice.stop();
     if (name !== 'game' && Runner.active) Runner.stop();
     if (cur !== name && name !== 'home') { try { history.pushState({ s: name }, ''); } catch (e) {} }
     cur = name;
     app.classList.toggle('pass', name === 'game');
+    if (unlocked && S().set.music) Sfx.startMusic(name === 'game' ? (arg && arg.s === 'b' ? 'boss' : 'run') : 'home');
     closeModal();
     SCREENS[name](arg);
   }
@@ -29,9 +31,8 @@ const UI = (() => {
     if ($('.modalBg')) { closeModal(); return; }
     if (cur !== 'home') go(cur === 'album' ? 'studio' : 'home');
   });
-  let unlocked = false;
   document.addEventListener('pointerdown', () => {
-    if (!unlocked) { unlocked = true; Sfx.unlock(); if (S().set.music) Sfx.startMusic(); }
+    if (!unlocked) { unlocked = true; Sfx.unlock(); if (S().set.music) Sfx.startMusic(cur === 'game' ? 'run' : 'home'); }
   }, { capture: true });
   app.addEventListener('click', (e) => {
     const b = e.target.closest('[data-a]');
@@ -316,8 +317,27 @@ const UI = (() => {
       <div class="jhint">칸을 누르면 토리가 걸어가요 👆</div></div>`;
     Journey.mount($('#jwrap'), arg && arg.at != null ? arg.at : st.pos);
     const nx = Journey.nextIdx();
-    if (arg && arg.walkNext && nx !== Journey.at) setTimeout(() => Journey.walkTo(nx, () => { st.pos = nx; Store.save(); }), 700);
+    const bridge = arg && arg.walkNext && Journey.NODES[nx] && Journey.NODES[nx].s === 0 && Journey.NODES[nx].w > 0 && !st.seen['bridge' + Journey.NODES[nx].w];
+    if (bridge) { st.seen['bridge' + Journey.NODES[nx].w] = true; setTimeout(() => { banner('🌉 다리가 생겼어요!'); Sfx.fanfare(); Voice.say(`다리가 생겼어! ${W[Journey.NODES[nx].w].name}으로 가자!`); }, 500); }
+    if (arg && arg.walkNext && nx !== Journey.at) setTimeout(() => Journey.walkTo(nx, () => { st.pos = nx; Store.save(); }), bridge ? 1600 : 700);
+    if (st.bottleDay !== today() && !st.seen.bottle) { st.seen.bottle = true; Store.save(); setTimeout(() => toast('🍾 바다에 병 편지가 떠 있어요! 찾아서 눌러 봐요', 3500), 1200); }
   }
+  const LETTERS = [
+    '토리야, 오늘도 힘내! 너는 할 수 있어! — 삐약이 🐥', '당근은 꼭꼭 씹어 먹어야 해! — 꿀곰이 🐻', '바다에서 반짝이는 조개를 봤어! — 펭펭이 🐧',
+    '재윤이가 웃으면 무지개가 떠요 🌈 — 무지개 마을', '오늘 틀린 문제는 내일의 정답이 돼요! — 몽글이 🐑', '숨은 황금 당근은 높은 곳을 좋아해! — 도토리 🐿️',
+    '깃발 꼭대기를 잡으면 기분이 최고야! — 귤냥이 🐱', '친구를 꾸며 주면 친구가 엄청 좋아해! — 판순이 🐼', '심술 구름도 사실은 외로웠대 — 여울이 🦊',
+  ];
+  ACT.bottle = () => {
+    const st = S(); if (st.bottleDay === today()) return;
+    st.bottleDay = today();
+    const n = 10 + Math.floor(Math.random() * 4) * 5;
+    addCarrots(n); Store.save(true); Sfx.gift();
+    const el = document.querySelector('.bottle'); if (el) el.remove();
+    const msg = pick(LETTERS).replace('재윤이', QS.josa(st.name || '재윤', '이', '')).replace(/이가/, '이가');
+    modal(`<div class="big">🍾</div><h2>바다에서 온 병 편지!</h2><div class="letter">${esc(msg)}</div><p>편지 속에 당근이 ${carrotTag().replace('<img', '<img style="width:30px;vertical-align:middle"')} ${n}개!</p><div class="row"><button class="btn pink big" data-a="closeModal">고마워!</button></div>`);
+    Voice.say('병 편지다! ' + msg.split(' — ')[0]);
+    confetti(innerWidth / 2, innerHeight / 2, 40);
+  };
   ACT.node = (d) => {
     const i = +d.i, n = Journey.NODES[i];
     if (Journey.walking) return;
@@ -369,12 +389,13 @@ const UI = (() => {
     app.innerHTML = `<div class="screen" id="gameScr">
       <div class="hud"><button class="iconbtn" data-a="pause" aria-label="멈춤">⏸️</button>${prog}
         ${boss ? '' : `<div class="goldHud">${[0, 1, 2].map(() => '<i></i>').join('')}</div>`}${carrotsHTML()}</div>
+      <div class="comboHud" id="combo"></div>
       <div id="qbox"></div></div>`;
     Runner.start({
       mode: boss ? 'boss' : 'stage', bossIdx: w, hp: 8,
       world: W[w].id, count: qs.length, seed: Math.floor(Math.random() * 6), look: st.look,
       team: st.team.filter((id) => st.friends[id]).slice(0, 3).map((id) => ({ id, top: st.friends[id].top || '' })),
-      rescue: G.rescue, tapHint: !st.seen.tap,
+      rescue: G.rescue, tapHint: !st.seen.tap, goldHint: !st.seen.gold,
       onAsk, onCarrot, onPass, onFinish: finish, onHint, onGold, onPole, onBlock, onBossHp,
     });
     st.plays++; Store.save();
@@ -391,6 +412,7 @@ const UI = (() => {
   function onHint(kind) {
     if (kind === true) { hint('👆 화면을 톡! 누르면 점프 · <b>꾹</b> 누르면 더 높이!', 7000); Voice.say('화면을 톡 누르면 점프! 꾹 누르면 더 높이 뛰어!'); }
     else if (kind === false) { S().seen.tap = true; Store.save(); hint(null); }
+    else if (kind === 'gold') { hint('✨ 반짝이는 황금 당근! 화면을 <b>꾹</b> 눌러서 높이 뛰어요', 5000); Voice.say('반짝이는 황금 당근이다! 꾹 눌러서 높이 뛰어!'); S().seen.gold = true; Store.save(); }
     else if (kind === 'pole') { hint('🏁 깃발 앞에서 <b>꾹</b> 눌러 높이 점프! 높을수록 보너스', 4500); Voice.say('깃발이다! 꾹 눌러서 높이 뛰어!'); }
     else hint(null);
   }
@@ -482,12 +504,13 @@ const UI = (() => {
           else banner(`🔥 ${G.combo}연속 정답!`);
         }
       } else G.combo = 0;
+      showCombo();
       const pin = document.querySelectorAll('.prog .pin')[G.qi]; if (pin) pin.classList.add(first ? 'ok' : 'meh');
       Voice.say(q.sayAfter && q.say ? q.say[0] : pick(first ? ['딩동댕!', '맞았어!', '최고야!', '멋져!', '우와, 천재다!', '정답!'] : ['맞았어!', '잘했어!', '좋아!']), q.sayAfter && q.say ? q.say[1] : 'ko');
       setTimeout(() => closeQ(first ? 'first' : 'second'), 750);
       return;
     }
-    G.tries++; G.combo = 0;
+    G.tries++; G.combo = 0; showCombo();
     el.classList.add('no'); Sfx.wrong(); Runner.react('oops', 1.2);
     if (G.boss) Runner.bossTaunt();
     const left = q.choices.length - G.tries;
@@ -503,6 +526,11 @@ const UI = (() => {
     }
   };
   ACT.afterMiss = () => closeQ('miss');
+  function showCombo() {
+    const c = $('#combo'); if (!c || !G) return;
+    if (G.combo >= 2) { c.innerHTML = `🔥<b>${G.combo}</b><small>연속</small>`; c.className = 'comboHud on'; void c.offsetWidth; c.classList.add('pop'); }
+    else c.className = 'comboHud';
+  }
   function pauseGame() {
     if (!G || G.done) return;
     Runner.setPaused(true);
@@ -560,6 +588,7 @@ const UI = (() => {
     confetti(innerWidth / 2, innerHeight * 0.3, 60);
     const goldNow = st.gold[key];
     modal(`<div class="result">
+      ${firsts === n ? '<div class="perfect">PERFECT 💯</div>' : ''}
       <h2>도착! ${stars === 3 ? '완벽해요 🎉' : stars === 2 ? '잘했어요 🎉' : '해냈어요 🎉'}</h2>
       <div class="bigStars">${[0, 1, 2].map((i) => `<span class="${i < stars ? '' : 'off'}">★</span>`).join('')}</div>
       <p>한 번에 맞힌 문제 <b>${firsts}</b> / ${n}${G.best >= 3 ? ` · 🔥 최고 ${G.best}연속` : ''}</p>
@@ -575,7 +604,7 @@ const UI = (() => {
     </div>`);
     setTimeout(() => checkStamps(), 1800);
     Voice.say(stars === 3 ? '와! 별 세 개야! 정말 대단해!' : stars === 2 ? '별 두 개! 잘했어!' : '끝까지 왔어! 멋져!').then(() => {
-      if (newFriend) Voice.say(`새 친구 ${QS.josa(newFriend.name, '을', '를')} 구했어!`, 'ko', { queue: true });
+      if (newFriend) Voice.say(`${newFriend.name}: 토리야, 구해 줘서 고마워! 나도 같이 갈래!`, 'ko', { queue: true });
     });
     G.result = { w: G.w, s: G.s };
   }

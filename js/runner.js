@@ -70,7 +70,7 @@ const Runner = (() => {
       tori: { y: 0, vy: 0, air: false, holdT: 0, expr: 'normal', exprT: 0, pose: 'run0', poseT: 0, squash: 0 },
       hist: [], parts: [], amb: [], seasonal: [], time: 0, rescueT: 0, look: opt.look,
       power: null, streak: 0, streakT: 0, shake: 0, gold: [false, false, false],
-      flag: 1, pole: null, poleHinted: false,
+      flag: 1, pole: null, poleHinted: false, tapHint: !!opt.tapHint,
       bossS: boss ? { hp: opt.hp, max: opt.hp, mood: 'angry', moodT: 0, x: 0, y: 0, shots: [], phaseT: 1.3, won: false, wind: 0 } : null,
       stars: Array.from({ length: 40 }, (_, i) => ({ x: (i * 157) % 1000 / 1000, y: (i * 89) % 520 / 1000, r: 1 + (i % 3), p: i })),
     };
@@ -186,6 +186,16 @@ const Runner = (() => {
         if (o.jumpReady && !t.air && d <= 100 && d > -OW) { t.vy = 1150 * u; t.air = true; t.holdT = 1; Sfx.jump(); o.jumpReady = false; }
         if (d < -OW - 60) { o.done = true; g.opt.onPass && g.opt.onPass(o.qi); }
         break;
+      }
+      // 황금 당근 첫 안내
+      if (g.opt.goldHint && !g.goldHinted && g.state === 'run') {
+        const gi = g.items.find((it) => it.kind === 'G' && !it.got && it.x * u - g.scroll < W * 0.9);
+        if (gi) { g.goldHinted = true; g.opt.onHint && g.opt.onHint('gold'); }
+      }
+      // 처음 하는 친구: 높은 당근이 보이면 점프 안내
+      if (g.tapHint && !g.hintShown && g.state === 'run') {
+        const hi = g.items.find((it) => !it.got && it.kind === 'c' && it.y >= 150 && it.x * u - g.scroll < W * 0.95);
+        if (hi) { g.hintShown = true; g.opt.onHint && g.opt.onHint(true); }
       }
       // 깃대
       if (g.state === 'run' && g.obs.every((o) => o.done)) {

@@ -1,6 +1,6 @@
 /* 토리의 반짝 달리기 — 저장 · 소리 · 목소리 · 효과 */
 'use strict';
-const APP_VERSION = '2026.11.09';
+const APP_VERSION = '2026.11.09-여정';
 
 /* ---------------- 저장 ---------------- */
 const Store = (() => {
@@ -132,27 +132,28 @@ const Sfx = (() => {
     shutter() { if (on()) { tone(1800, 0, 0.04, 'square', 0.1); tone(900, 0.05, 0.08, 'square', 0.08); } },
   };
   /* 배경 음악: 짧은 오르골 멜로디를 되풀이 */
-  const MEL = [
-    [72, 2], [76, 2], [79, 2], [76, 2], [77, 2], [74, 2], [71, 4],
-    [72, 2], [76, 2], [79, 2], [84, 2], [81, 4], [79, 4],
-    [77, 2], [81, 2], [79, 2], [76, 2], [74, 2], [77, 2], [76, 4],
-    [72, 2], [74, 2], [76, 2], [79, 2], [74, 4], [72, 4],
-  ];
-  const BASS = [48, 43, 45, 41, 48, 43, 41, 43];
+  /* 배경 음악: 장면마다 다른 오르골 멜로디 [음, 길이] */
+  const SONGS = {
+    home: { beat: 0.2, wave: 'triangle', mel: [[72, 2], [76, 2], [79, 2], [76, 2], [77, 2], [74, 2], [71, 4], [72, 2], [76, 2], [79, 2], [84, 2], [81, 4], [79, 4], [77, 2], [81, 2], [79, 2], [76, 2], [74, 2], [77, 2], [76, 4], [72, 2], [74, 2], [76, 2], [79, 2], [74, 4], [72, 4]], bass: [48, 43, 45, 41, 48, 43, 41, 43] },
+    run: { beat: 0.15, wave: 'square', vol: 0.32, mel: [[72, 1], [74, 1], [76, 2], [79, 2], [76, 1], [79, 1], [81, 2], [79, 2], [76, 2], [74, 1], [76, 1], [72, 2], [74, 2], [67, 2], [72, 1], [74, 1], [76, 2], [79, 2], [84, 2], [81, 2], [79, 2], [76, 1], [77, 1], [79, 2], [74, 2], [72, 4]], bass: [48, 48, 45, 45, 41, 41, 43, 43] },
+    boss: { beat: 0.14, wave: 'square', vol: 0.3, mel: [[69, 1], [72, 1], [76, 1], [72, 1], [69, 1], [72, 1], [77, 2], [76, 1], [74, 1], [72, 1], [71, 1], [72, 2], [69, 2], [69, 1], [72, 1], [76, 1], [79, 1], [77, 1], [76, 1], [74, 2], [76, 1], [74, 1], [72, 1], [71, 1], [69, 4]], bass: [45, 45, 41, 41, 43, 43, 40, 40] },
+  };
   const mtof = (m) => 440 * Math.pow(2, (m - 69) / 12);
-  function startMusic() {
+  let song = 'home';
+  function startMusic(kind) {
+    if (kind) { if (musicOn && kind === song) return; song = kind; if (musicOn) stopMusic(); }
     if (musicOn || !Store.S.set.music) return;
     const a = ctx(); if (!a) return;
     musicOn = true; step = 0;
-    const beat = 0.2;
+    const SG = SONGS[song] || SONGS.home;
     let idx = 0, t = a.currentTime + 0.1, bar = 0;
     const sched = () => {
       if (!musicOn) return;
       while (t < a.currentTime + 1.2) {
-        const [n, len] = MEL[idx];
-        tone(mtof(n), t - a.currentTime, len * beat * 0.95, 'triangle', 0.5, null, musicGain);
-        if (step % 8 === 0) tone(mtof(BASS[bar % BASS.length]), t - a.currentTime, beat * 7, 'sine', 0.6, null, musicGain), bar++;
-        step += len; t += len * beat; idx = (idx + 1) % MEL.length;
+        const [n, len] = SG.mel[idx];
+        tone(mtof(n), t - a.currentTime, len * SG.beat * 0.92, SG.wave, SG.vol || 0.5, null, musicGain);
+        if (step % 8 === 0) { tone(mtof(SG.bass[bar % SG.bass.length]), t - a.currentTime, SG.beat * 7, 'sine', 0.6, null, musicGain); bar++; }
+        step += len; t += len * SG.beat; idx = (idx + 1) % SG.mel.length;
       }
       musicTimer = setTimeout(sched, 300);
     };

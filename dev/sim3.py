@@ -16,7 +16,7 @@ async def main():
         await pg.screenshot(path=f'{OUT}/00_first.png')
         screens = {}
         for i in range(700):
-            btns = await pg.query_selector_all('[data-a]:not([disabled]), #giftBox, .piece')
+            btns = await pg.query_selector_all('[data-a]:not([disabled]), #giftBox, .piece, .story [data-s]')
             vis = []
             for bt in btns:
                 bb = await bt.bounding_box()

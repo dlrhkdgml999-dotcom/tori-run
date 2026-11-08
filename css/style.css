@@ -405,3 +405,24 @@ button { font-family: var(--font); color: var(--ink); cursor: pointer; border: 0
 .stampPop b { color: #ff6b8b; font-weight: normal; } .stampPop small { color: #f08c00; }
 @keyframes stampIn { from { transform: translateX(120%) rotate(10deg); } }
 @media (max-aspect-ratio: 1/1) { .stampGrid { grid-template-columns: repeat(2, 1fr); } }
+
+.comboHud { position: absolute; top: 92px; right: 22px; display: none; align-items: baseline; gap: 2px; background: rgba(255,255,255,.9); border-radius: 99px; padding: 4px 14px; font-size: 26px; color: #ff6b6b; box-shadow: var(--sh); pointer-events: none; z-index: 11; }
+.comboHud.on { display: flex; } .comboHud b { font-weight: normal; font-size: 34px; } .comboHud small { font-size: 16px; color: #9b8291; }
+.comboHud.pop { animation: pop .35s; }
+.perfect { position: absolute; top: 18px; right: -10px; transform: rotate(12deg); border: 5px solid #ff6b8b; color: #ff6b8b; padding: 4px 14px; border-radius: 14px; font-size: 30px; background: #fff; animation: stampDown .5s cubic-bezier(.3, 1.6, .5, 1) .6s both; }
+@keyframes stampDown { from { transform: rotate(12deg) scale(2.6); opacity: 0; } }
+.jmap .jarrow { animation: hop 0.8s ease-in-out infinite; }
+
+@media (max-height: 520px) {
+  .modal { padding: 12px 18px; } .modal .tori { width: 84px; } .modal h2 { font-size: 26px; } .modal p { font-size: 18px; margin: 4px 0; }
+  .modal .big { font-size: 36px; } .modal .row { margin-top: 8px; } .reveal svg { width: 140px; } .gift { width: 170px; }
+  .result .bigStars { font-size: 44px; } .gain { font-size: 38px; } .gain img { width: 40px; }
+  .storyPic { max-height: 52vh; } .storyText { font-size: 18px; padding: 6px 14px 0; } .storyBtns { padding: 6px 12px 8px; }
+  .chapter { font-size: 26px; padding: 6px 20px; }
+}
+/* 지도: 바다 친구들 · 병 편지 */
+.jmap .fish { animation: fishJump 4.5s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes fishJump { 0%, 70%, 100% { transform: translateY(40px); opacity: 0; } 78% { transform: translateY(-30px) rotate(-20deg); opacity: 1; } 88% { transform: translateY(10px) rotate(25deg); opacity: 1; } }
+.jmap .bottle { animation: bob 2.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; cursor: pointer; }
+@keyframes bob { 50% { transform: translateY(-10px) rotate(8deg); } }
+.letter { background: #fffbe8; border: 4px dashed #e8c36b; border-radius: 20px; padding: 14px 18px; font-size: 24px; line-height: 1.5; margin: 8px 0; }
