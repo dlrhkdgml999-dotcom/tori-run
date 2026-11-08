@@ -11,6 +11,8 @@ const ART = (() => {
     lemon:    { name: '레몬 털',   f: '#fff0b0', s: '#f2d97e', price: 40 },
     lavender: { name: '보라 털',   f: '#e6dbff', s: '#cdbdf5', price: 45 },
     choco:    { name: '초코 털',   f: '#ecd3bd', s: '#d6b394', price: 50 },
+    gray:     { name: '구름 털',   f: '#e9ecef', s: '#ced4da', price: 60 },
+    peach:    { name: '복숭아 털', f: '#ffd8c2', s: '#f7b99b', price: 70 },
   };
 
   let uidN = 0;
@@ -50,6 +52,11 @@ const ART = (() => {
     { id: 'starband', cat: 'hat', name: '별 머리띠', price: 55 },
     { id: 'crown', cat: 'hat', name: '황금 왕관', price: 80 },
     { id: 'wizard', cat: 'hat', name: '마법사 모자', price: 110 },
+    { id: 'partyhat', cat: 'hat', name: '생일 고깔', price: 35 },
+    { id: 'earmuffs', cat: 'hat', name: '털 귀마개', price: 65 },
+    { id: 'sunhat', cat: 'hat', name: '밀짚모자', price: 90 },
+    { id: 'chef', cat: 'hat', name: '요리사 모자', price: 120 },
+    { id: 'headphones', cat: 'hat', name: '헤드폰', price: 150 },
     { id: 'tiara', cat: 'hat', name: '공주 티아라', special: true },
     { id: 'unicorn', cat: 'hat', name: '유니콘 뿔', special: true },
     // 옷
@@ -59,6 +66,11 @@ const ART = (() => {
     { id: 'dress', cat: 'cloth', name: '분홍 원피스', price: 55 },
     { id: 'sailor', cat: 'cloth', name: '세일러복', price: 70 },
     { id: 'princess', cat: 'cloth', name: '공주 드레스', price: 130 },
+    { id: 'heartshirt', cat: 'cloth', name: '하트 티셔츠', price: 25 },
+    { id: 'pajama', cat: 'cloth', name: '별 잠옷', price: 60 },
+    { id: 'bee', cat: 'cloth', name: '꿀벌 옷', price: 95 },
+    { id: 'tutu', cat: 'cloth', name: '발레복', price: 150 },
+    { id: 'hanbok', cat: 'cloth', name: '색동 한복', price: 240 },
     { id: 'sparkledress', cat: 'cloth', name: '반짝 별 드레스', special: true },
     // 얼굴
     { id: 'heartcheeks', cat: 'face', name: '하트 볼터치', price: 10 },
@@ -66,18 +78,28 @@ const ART = (() => {
     { id: 'glasses', cat: 'face', name: '동그란 안경', price: 25 },
     { id: 'mustache', cat: 'face', name: '멋쟁이 콧수염', price: 30 },
     { id: 'sunglasses', cat: 'face', name: '선글라스', price: 45 },
+    { id: 'glitter', cat: 'face', name: '반짝 볼', price: 20 },
+    { id: 'flowersticker', cat: 'face', name: '꽃 스티커', price: 20 },
+    { id: 'bandaid', cat: 'face', name: '하트 반창고', price: 25 },
     { id: 'heartglasses', cat: 'face', name: '하트 안경', special: true },
     // 신발
     { id: 'sneakers', cat: 'shoes', name: '빨간 운동화', price: 15 },
     { id: 'boots', cat: 'shoes', name: '노란 장화', price: 30 },
     { id: 'shiny', cat: 'shoes', name: '반짝 구두', price: 50 },
     { id: 'roller', cat: 'shoes', name: '롤러스케이트', price: 90 },
+    { id: 'slippers', cat: 'shoes', name: '토끼 슬리퍼', price: 25 },
+    { id: 'flowershoes', cat: 'shoes', name: '꽃 샌들', price: 45 },
+    { id: 'ballet', cat: 'shoes', name: '발레 슈즈', price: 70 },
     { id: 'cloudshoes', cat: 'shoes', name: '구름 신발', special: true },
     // 등
     { id: 'backpack', cat: 'back', name: '꼬마 가방', price: 20 },
     { id: 'balloon', cat: 'back', name: '하트 풍선', price: 40 },
     { id: 'cape', cat: 'back', name: '빨간 망토', price: 60 },
     { id: 'wings', cat: 'back', name: '나비 날개', price: 100 },
+    { id: 'starballoon', cat: 'back', name: '별 풍선', price: 70 },
+    { id: 'bearbag', cat: 'back', name: '곰돌이 가방', price: 85 },
+    { id: 'parasol', cat: 'back', name: '꽃 양산', price: 130 },
+    { id: 'angelwings', cat: 'back', name: '천사 날개', price: 200 },
     { id: 'rainbowcape', cat: 'back', name: '무지개 망토', special: true },
     { id: 'fairywings', cat: 'back', name: '요정 날개', special: true },
   ];
@@ -121,6 +143,16 @@ const ART = (() => {
         return `<g opacity="0.92"><path d="M96 182 Q40 120 18 150 Q10 196 92 196Z" ${st('#c5f6fa', 'fill-opacity="0.85"')}/><path d="M96 196 Q40 210 36 236 Q60 250 96 204Z" ${st('#d0ebff', 'fill-opacity="0.85"')}/>
                 <path d="M104 182 Q160 120 182 150 Q190 196 108 196Z" ${st('#c5f6fa', 'fill-opacity="0.85"')}/><path d="M104 196 Q160 210 164 236 Q140 250 104 204Z" ${st('#d0ebff', 'fill-opacity="0.85"')}/></g>`
           + sparkle(34, 150, 8) + sparkle(168, 152, 8) + sparkle(50, 226, 5) + sparkle(152, 226, 5);
+      case 'starballoon':
+        return `<path d="M140 200 Q150 140 160 92" fill="none" stroke="${OL}" stroke-width="2.4"/>` + star(164, 64, 30, '#ffe066', 0.1, 3.2) + `<ellipse cx="156" cy="56" rx="5" ry="8" fill="#fff" opacity=".7" transform="rotate(-30 156 56)"/>`;
+      case 'bearbag':
+        return `<g transform="translate(-14 0)"><circle cx="40" cy="172" r="9" ${st('#c99a6e')}/><circle cx="70" cy="172" r="9" ${st('#c99a6e')}/><rect x="30" y="170" width="50" height="52" rx="22" ${st('#c99a6e')}/><ellipse cx="55" cy="204" rx="12" ry="9" fill="#f1dcc4"/><circle cx="46" cy="190" r="3" fill="${OL}"/><circle cx="64" cy="190" r="3" fill="${OL}"/><ellipse cx="55" cy="201" rx="3.4" ry="2.4" fill="${OL}"/></g>`;
+      case 'parasol':
+        return `<path d="M140 204 L170 70" stroke="${OL}" stroke-width="4" stroke-linecap="round"/><path d="M118 74 Q172 0 214 66 Q204 58 194 68 Q184 58 174 68 Q164 58 154 70 Q144 62 134 72 Q126 66 118 74Z" ${st('#ffa8c5')}/><path d="M166 26 L154 70 M166 26 L176 68 M166 26 L194 68" fill="none" stroke="#ff8fb6" stroke-width="2.4"/>` + flower(166, 26, 8, '#fff3a3') + `<path d="M140 204 q-6 6 0 10" fill="none" stroke="${OL}" stroke-width="4" stroke-linecap="round"/>`;
+      case 'angelwings': {
+        const w = `<path d="M96 178 C70 128 30 112 14 136 C6 150 16 162 26 164 C14 172 18 188 32 188 C24 198 34 212 48 206 C48 218 64 222 74 210 C86 214 96 202 98 192Z" ${st('#fff')}/><path d="M40 152 Q64 156 84 176 M44 176 Q66 178 86 188 M58 198 Q74 196 90 196" fill="none" stroke="#dbe4ff" stroke-width="3" stroke-linecap="round"/>`;
+        return `<g transform="translate(100 186) scale(1.35) translate(-100 -186)">${w}<g transform="translate(200 0) scale(-1 1)">${w}</g></g>` + sparkle(22, 118, 7, '#ffe066') + sparkle(178, 118, 7, '#ffe066');
+      }
       case 'balloon':
         return `<path d="M140 200 Q158 150 166 96" fill="none" stroke="${OL}" stroke-width="2.4"/>` + heart(168, 74, 26, '#ff6b8b', 3) + `<ellipse cx="158" cy="62" rx="6" ry="9" fill="#fff" opacity=".6" transform="rotate(-30 158 62)"/>`;
     }
@@ -148,6 +180,16 @@ const ART = (() => {
         return `<rect x="50" y="160" width="100" height="90" fill="#d0bfff"/><path d="M80 168 Q100 180 120 168" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>` + sparkle(100, 192, 7, '#fff');
       case 'sparkledress':
         return `<rect x="50" y="160" width="100" height="90" fill="#91a7ff"/>` + sparkle(88, 186, 5) + sparkle(112, 194, 6);
+      case 'heartshirt':
+        return `<rect x="50" y="160" width="100" height="90" fill="#fff"/><rect x="50" y="160" width="100" height="10" fill="#ff8fa3"/>` + heart(100, 200, 13, '#ff6b8b', 2.4);
+      case 'pajama':
+        return `<rect x="50" y="160" width="100" height="90" fill="#a5d8ff"/>` + star(80, 186, 6, '#fff3a3', 0, 1.6) + star(116, 206, 6, '#fff3a3', 0.4, 1.6) + star(92, 226, 5, '#fff3a3', 0.2, 1.6) + `<path d="M116 176 a9 9 0 1 0 8 12 a7 7 0 1 1 -8 -12Z" fill="#fff3a3"/>` + `<circle cx="100" cy="196" r="2.6" fill="#fff"/><circle cx="100" cy="212" r="2.6" fill="#fff"/>`;
+      case 'bee':
+        return `<rect x="50" y="160" width="100" height="90" fill="#ffd43b"/><rect x="50" y="186" width="100" height="12" fill="#5c4b51"/><rect x="50" y="212" width="100" height="12" fill="#5c4b51"/>`;
+      case 'tutu':
+        return `<rect x="50" y="160" width="100" height="90" fill="#ffc9de"/><path d="M84 168 Q100 180 116 168" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>`;
+      case 'hanbok':
+        return `<rect x="50" y="160" width="100" height="90" fill="#fff3a3"/><path d="M76 164 L100 194 L124 164" fill="none" stroke="#fff" stroke-width="7"/><path d="M76 164 L100 194 L124 164" fill="none" stroke="#69db7c" stroke-width="3"/><path d="M100 196 q-14 4 -10 22 M100 196 q12 6 4 24" fill="none" stroke="#ff6b8b" stroke-width="5" stroke-linecap="round"/>`;
     }
     return '';
   }
@@ -165,6 +207,12 @@ const ART = (() => {
       }
       case 'raincoat':
         return `<path d="M60 222 Q100 236 140 222 L142 232 Q100 248 58 232Z" ${st('#ffd43b')}/>`;
+      case 'tutu':
+        return `<ellipse cx="100" cy="212" rx="58" ry="16" ${st('#ffdeeb')}/><ellipse cx="100" cy="208" rx="50" ry="11" fill="#fff0f6" opacity=".9"/><path d="M50 214 q8 8 16 2 q8 8 16 2 q8 8 18 2 q8 8 18 2 q8 8 16 2 q8 8 16 -2" fill="none" stroke="#ffadc6" stroke-width="2.4"/>` + sparkle(76, 210, 4) + sparkle(124, 210, 4);
+      case 'hanbok': {
+        let s2 = `<path d="M62 200 Q100 206 138 200 L156 246 Q100 258 44 246Z" ${st('#ff8fa3')}/><path d="M60 202 Q100 208 140 202 L141 210 Q100 216 59 210Z" fill="#fff" stroke="${OL}" stroke-width="2"/>`;
+        return s2 + flower(82, 230, 6, '#ffe066', '#fff') + flower(118, 234, 6, '#ffe066', '#fff');
+      }
     }
     return '';
   }
@@ -181,6 +229,12 @@ const ART = (() => {
         return g(`<ellipse cx="${x + 2}" cy="${y}" rx="19" ry="11" ${st('#b197fc')}/><circle cx="${x + 2}" cy="${y - 7}" r="4" fill="#ffe066" stroke="${OL}" stroke-width="1.6"/>` + sparkle(x + 12, y - 2, 4));
       case 'roller':
         return g(`<path d="M${x - 14} ${y - 14} h18 q16 0 16 12 v4 h-36Z" ${st('#ff8fb6')}/><rect x="${x - 16}" y="${y + 1}" width="38" height="5" rx="2" fill="${OL}"/><circle cx="${x - 9}" cy="${y + 10}" r="5" ${st('#ffe066', '')}/><circle cx="${x + 15}" cy="${y + 10}" r="5" ${st('#ffe066', '')}/>`);
+      case 'slippers':
+        return g(`<ellipse cx="${x + 2}" cy="${y}" rx="20" ry="12" ${st('#ffc9de')}/><ellipse cx="${x + 8}" cy="${y - 12}" rx="4" ry="9" transform="rotate(-20 ${x + 8} ${y - 12})" ${st('#ffc9de', 'stroke-width="2"')}/><ellipse cx="${x + 15}" cy="${y - 11}" rx="4" ry="9" transform="rotate(15 ${x + 15} ${y - 11})" ${st('#ffc9de', 'stroke-width="2"')}/><circle cx="${x + 14}" cy="${y - 1}" r="1.8" fill="${OL}"/>`);
+      case 'flowershoes':
+        return g(`<ellipse cx="${x}" cy="${y}" rx="17" ry="10" ${st(furF)}/><path d="M${x - 16} ${y + 6} Q${x} ${y + 12} ${x + 18} ${y + 6}" fill="none" stroke="#63e6be" stroke-width="5" stroke-linecap="round"/><path d="M${x - 6} ${y - 8} L${x + 2} ${y + 6} M${x + 8} ${y - 8} L${x + 2} ${y + 6}" stroke="#63e6be" stroke-width="3.4" stroke-linecap="round"/>` + flower(x + 2, y - 6, 6, '#ffa8c5'));
+      case 'ballet':
+        return g(`<ellipse cx="${x + 2}" cy="${y}" rx="19" ry="11" ${st('#ffc9de')}/><path d="M${x - 4} ${y - 8} L${x + 6} ${y - 22} M${x + 8} ${y - 8} L${x - 2} ${y - 22}" stroke="#ff8fb6" stroke-width="2.6" stroke-linecap="round"/><path d="M${x - 4} ${y - 6} q6 -6 12 0" fill="none" stroke="#ff8fb6" stroke-width="2.4"/>`);
       case 'cloudshoes':
         return g(`<circle cx="${x - 10}" cy="${y + 2}" r="9" ${st('#fff')}/><circle cx="${x + 2}" cy="${y - 4}" r="11" ${st('#fff')}/><circle cx="${x + 14}" cy="${y + 2}" r="9" ${st('#fff')}/><path d="M${x - 16} ${y + 6} h34" stroke="#fff" stroke-width="8"/>` + sparkle(x + 20, y - 10, 4, '#a5d8ff'));
     }
@@ -217,6 +271,12 @@ const ART = (() => {
         return `<path d="M100 130 Q90 124 82 130 Q76 136 70 130 Q74 142 86 138 Q96 136 100 132 Q104 136 114 138 Q126 142 130 130 Q124 136 118 130 Q110 124 100 130Z" fill="#8b5e3c" stroke="${OL}" stroke-width="2"/>`;
       case 'starsticker':
         return star(132, 134, 9, '#ffe066', 0.2, 2);
+      case 'glitter':
+        return sparkle(64, 130, 6, '#fff') + sparkle(76, 138, 4, '#ffe066') + sparkle(136, 130, 6, '#fff') + sparkle(124, 138, 4, '#ffe066') + sparkle(70, 124, 3, '#ffc9de') + sparkle(130, 124, 3, '#ffc9de');
+      case 'flowersticker':
+        return flower(134, 134, 9, '#ffa8c5');
+      case 'bandaid':
+        return `<g transform="rotate(-25 128 92)"><rect x="112" y="85" width="32" height="14" rx="7" fill="#ffd8a8" stroke="${OL}" stroke-width="2"/></g>` + heart(128, 92, 4.5, '#ff8fa3', 1.2);
     }
     return '';
   }
@@ -242,6 +302,18 @@ const ART = (() => {
         return `<path d="M68 76 L64 40 L82 56 L100 32 L118 56 L136 40 L132 76Z" ${st('#ffd43b')}/><circle cx="100" cy="62" r="5" fill="#ff6b8b" stroke="${OL}" stroke-width="2"/><circle cx="80" cy="66" r="3.6" fill="#74c0fc"/><circle cx="120" cy="66" r="3.6" fill="#74c0fc"/>` + sparkle(110, 46, 4);
       case 'wizard':
         return `<path d="M64 80 Q100 70 136 80 L112 6 Q106 0 102 8Z" ${st('#9775fa')}/><ellipse cx="100" cy="80" rx="46" ry="11" ${st('#845ef7')}/>` + star(104, 44, 9, '#ffe066') + sparkle(90, 62, 4) + sparkle(120, 58, 4) + `<circle cx="108" cy="8" r="6" fill="#ffe066" stroke="${OL}" stroke-width="2"/>`;
+      case 'partyhat':
+        return `<g transform="rotate(14 104 76)"><path d="M80 80 L104 14 L128 80Z" ${st('#74c0fc')}/><path d="M90 52 L118 60 M84 70 L124 78 M96 34 L112 40" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="104" cy="14" r="8" ${st('#ffe066', 'stroke-width="2.4"')}/><path d="M78 80 Q104 88 130 80" fill="none" stroke="#ff8fb6" stroke-width="5" stroke-linecap="round"/></g>`;
+      case 'earmuffs':
+        return `<path d="M46 118 Q46 44 100 46 Q154 44 154 118" fill="none" stroke="${OL}" stroke-width="10" stroke-linecap="round"/><path d="M46 118 Q46 44 100 46 Q154 44 154 118" fill="none" stroke="#ff8fb6" stroke-width="5" stroke-linecap="round"/>` +
+          `<circle cx="44" cy="120" r="18" ${st('#ffe3ef')}/><circle cx="156" cy="120" r="18" ${st('#ffe3ef')}/><circle cx="40" cy="114" r="5" fill="#fff"/><circle cx="152" cy="114" r="5" fill="#fff"/>`;
+      case 'sunhat':
+        return `<ellipse cx="100" cy="78" rx="72" ry="17" ${st('#ffe8a3')}/><path d="M64 78 Q64 34 100 34 Q136 34 136 78Z" ${st('#ffe8a3')}/><path d="M64 70 Q100 80 136 70 L136 78 Q100 88 64 78Z" fill="#ff6b8b" stroke="${OL}" stroke-width="2"/>` + flower(128, 68, 9, '#fff', '#ffd43b') + `<path d="M40 82 q10 4 20 2 M140 84 q10 2 20 -2" stroke="#e8c36b" stroke-width="2" fill="none"/>`;
+      case 'chef':
+        return `<rect x="70" y="56" width="60" height="22" rx="4" ${st('#fff')}/><circle cx="80" cy="44" r="16" ${st('#fff')}/><circle cx="100" cy="34" r="20" ${st('#fff')}/><circle cx="120" cy="44" r="16" ${st('#fff')}/><rect x="72" y="46" width="56" height="14" fill="#fff"/><path d="M76 64 h48" stroke="#e9ecef" stroke-width="3"/>`;
+      case 'headphones':
+        return `<path d="M48 112 Q46 50 100 50 Q154 50 152 112" fill="none" stroke="${OL}" stroke-width="12" stroke-linecap="round"/><path d="M48 112 Q46 50 100 50 Q154 50 152 112" fill="none" stroke="#b197fc" stroke-width="6" stroke-linecap="round"/>` +
+          `<rect x="30" y="98" width="26" height="40" rx="12" ${st('#b197fc')}/><rect x="144" y="98" width="26" height="40" rx="12" ${st('#b197fc')}/>` + heart(43, 118, 6, '#fff', 1.4) + heart(157, 118, 6, '#fff', 1.4);
       case 'tiara':
         return `<path d="M64 80 Q100 60 136 80 L128 62 L116 70 L100 42 L84 70 L72 62Z" ${st('#e9ecef')}/><path d="M100 50 l7 12 l-7 10 l-7 -10Z" fill="#ff6b9d" stroke="${OL}" stroke-width="2"/><circle cx="76" cy="70" r="3.4" fill="#74c0fc"/><circle cx="124" cy="70" r="3.4" fill="#74c0fc"/>` + sparkle(112, 52, 5) + sparkle(86, 54, 4);
       case 'unicorn':
@@ -270,10 +342,14 @@ const ART = (() => {
     s += foot(P.L[0], P.L[1], P.L[2], F.f, look.shoes) + foot(P.R[0], P.R[1], P.R[2], F.f, look.shoes);
     s += clothOver(look.cloth);
     // 팔
-    const armFill = ['raincoat', 'sailor', 'princess', 'sparkledress', 'stripe', 'overall', 'dress'].includes(look.cloth)
-      ? ({ raincoat: '#ffd43b', sailor: '#fff', princess: '#d0bfff', sparkledress: '#91a7ff', stripe: '#fff', overall: '#ffe28a', dress: '#ffb3cc' })[look.cloth] : F.f;
+    const ARM = { raincoat: '#ffd43b', sailor: '#fff', princess: '#d0bfff', sparkledress: '#91a7ff', stripe: '#fff', overall: '#ffe28a', dress: '#ffb3cc', heartshirt: '#fff', pajama: '#a5d8ff', bee: '#ffd43b', tutu: '#ffc9de', hanbok: '#ff8fa3' };
+    const armFill = ARM[look.cloth] || F.f;
     s += `<ellipse cx="64" cy="${194 + P.ay}" rx="10" ry="15" transform="rotate(${P.aL} 66 ${182 + P.ay})" ${st(armFill)}/>`;
     s += `<ellipse cx="136" cy="${194 + P.ay}" rx="10" ry="15" transform="rotate(${P.aR} 134 ${182 + P.ay})" ${st(armFill)}/>`;
+    if (look.cloth === 'hanbok') {
+      const band = (cx, rot) => `<g transform="rotate(${rot} ${cx < 100 ? 66 : 134} ${182 + P.ay})">${['#ffe066', '#69db7c', '#74c0fc', '#fff'].map((c, i) => `<rect x="${cx - 9}" y="${186 + P.ay + i * 4}" width="18" height="3" fill="${c}"/>`).join('')}</g>`;
+      s += band(64, P.aL) + band(136, P.aR);
+    }
     // 귀
     s += `<g transform="rotate(-12 82 84)"><ellipse cx="82" cy="46" rx="16" ry="42" ${st(F.f)}/><ellipse cx="82" cy="50" rx="7.5" ry="29" fill="#ffb3c9"/></g>`;
     s += `<g transform="rotate(16 120 84)"><ellipse cx="120" cy="46" rx="16" ry="42" ${st(F.f)}/><ellipse cx="120" cy="50" rx="7.5" ry="29" fill="#ffb3c9"/></g>`;

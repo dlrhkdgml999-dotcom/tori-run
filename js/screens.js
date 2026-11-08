@@ -19,6 +19,7 @@ const UI = (() => {
     if (name !== 'game' && Runner.active) Runner.stop();
     if (cur !== name && name !== 'home') { try { history.pushState({ s: name }, ''); } catch (e) {} }
     cur = name;
+    app.classList.toggle('pass', name === 'game');
     closeModal();
     SCREENS[name](arg);
   }
@@ -238,8 +239,9 @@ const UI = (() => {
   function onHint(show) {
     const g = $('#gameScr'); if (!g) return;
     const old = $('.tapHint'); if (old) old.remove();
-    if (show) { g.insertAdjacentHTML('beforeend', '<div class="tapHint">👆 화면을 톡! 누르면 점프해요</div>'); Voice.say('화면을 톡 누르면 점프해요!'); }
-    else { S().seen.tap = true; Store.save(); }
+    clearTimeout(onHint.t);
+    if (show) { g.insertAdjacentHTML('beforeend', '<div class="tapHint">👆 화면을 톡! 누르면 점프해요</div>'); Voice.say('화면을 톡 누르면 점프해서 당근을 먹을 수 있어!'); onHint.t = setTimeout(() => { const h = $('.tapHint'); if (h) h.remove(); }, 7000); }
+    else if (show === false) { S().seen.tap = true; Store.save(); }
   }
   function onCarrot(n, x, y, kind) {
     if (!G) return;
@@ -343,10 +345,12 @@ const UI = (() => {
       st.friends[newFriend.id] = { top: '' };
       if (st.team.length < 3) st.team.push(newFriend.id);
     } else treasure = 15;
-    if (stars === 3 && prev < 3) {
-      const left = ART.ITEMS.filter((it) => it.special && !st.owned[it.id]);
-      gift = left.length ? left[Math.floor(Math.random() * left.length)] : { bonus: 40 };
-    }
+    const giftQ = [];
+    const pickGift = () => { const left = ART.ITEMS.filter((it) => it.special && !st.owned[it.id] && !giftQ.includes(it)); return left.length ? left[Math.floor(Math.random() * left.length)] : { bonus: 40 }; };
+    if (stars === 3 && prev < 3) giftQ.push(pickGift());
+    st.worldGift = st.worldGift || {};
+    if (!st.worldGift[G.w] && [0, 1, 2].every((i) => st.stars[stageKey(G.w, i)])) { st.worldGift[G.w] = true; giftQ.push(pickGift()); G.worldDone = true; }
+    G.giftQ = giftQ; gift = giftQ[0] || null;
     mission('play', 1); mission('first', firsts); if (stars === 3) mission('star3', 1);
     const bonus = clear + starB + treasure;
     addCarrots(bonus);
@@ -357,14 +361,15 @@ const UI = (() => {
     const hasNext = G.s < 2 || G.w < W.length - 1;
     Sfx.fanfare();
     confetti(innerWidth / 2, innerHeight * 0.3, 60);
-    const row = (a, b) => `<div><span>${a}</span><span>+${b}</span></div>`;
     modal(`<div class="result">
       <h2>도착! ${stars === 3 ? '완벽해요 🎉' : stars === 2 ? '잘했어요 🎉' : '해냈어요 🎉'}</h2>
       <div class="bigStars">${[0, 1, 2].map((i) => `<span class="${i < stars ? '' : 'off'}">★</span>`).join('')}</div>
       <p>한 번에 맞힌 문제 <b>${firsts}</b> / ${n}${G.best >= 3 ? ` · 🔥 최고 ${G.best}연속` : ''}</p>
-      ${newFriend ? `<div class="topRow"><div class="chip on" style="font-size:24px">${ART.friend(newFriend.id)} 새 친구 <b>${newFriend.name}</b>(${QS.josa(newFriend.kind, '을', '를')}) 구했어요!</div></div>` : ''}
-      <div class="tally">${row('🧠 문제 당근', G.qCarrots)}${row('🥕 길에서 주운 당근', G.field)}${row('🏁 도착 선물', clear)}${row('⭐ 별 선물', starB)}${treasure ? row('🎁 보물 상자', treasure) : ''}<div class="sum"><span>모두</span><span>${carrotTag().replace('<img', '<img style="width:30px;vertical-align:middle"')} ${total}</span></div></div>
-      ${gift ? `<div class="row"><button class="btn lav big" data-a="openGift" data-id="${gift.id || ''}" data-bonus="${gift.bonus || 0}">🎁 선물 상자 열기!</button></div>` : ''}
+      ${newFriend ? `<div class="topRow"><div class="chip on" style="font-size:24px">${ART.friend(newFriend.id)} 새 친구 <b>${newFriend.name}</b>(${newFriend.kind})${QS.josa(newFriend.kind, '을', '를').slice(newFriend.kind.length)} 구했어요!</div></div>` : ''}
+      <div class="gain">${carrotTag()}<b>+${total}</b></div>
+      <div class="gainParts"><span>🧠 문제 ${G.qCarrots}</span><span>🥕 길 ${G.field}</span><span>🏁 도착 ${clear}</span><span>⭐ 별 ${starB}</span>${treasure ? `<span>🎁 보물 ${treasure}</span>` : ''}</div>
+      ${gift ? `<div class="row"><button class="btn lav big" data-a="openGift">🎁 선물 상자 열기!${G.giftQ.length > 1 ? ` (${G.giftQ.length}개)` : ''}</button></div>` : ''}
+      ${G.worldDone ? `<p style="font-size:21px;color:#845ef7">🌟 ${W0.name}의 판을 모두 깼어요! 선물이 하나 더!</p>` : ''}
       ${wrongs.length ? `<details class="wrongs"><summary style="font-size:22px">📒 다시 볼 문제 ${wrongs.length}개</summary>${wrongs.map((r) => `<div>${esc(r.q.text)} ${r.q.visual && r.q.emoji === false && /bigemo/.test(r.q.visual) ? r.q.visual.replace(/<[^>]+>/g, '') : ''} → 정답 <b>${esc(r.q.answer)}</b></div>`).join('')}</details>` : ''}
       <div class="row" ${gift ? 'style="opacity:.0;pointer-events:none" id="afterGift"' : ''}>
         <button class="btn" data-a="replay">🔁 다시</button>
@@ -385,8 +390,9 @@ const UI = (() => {
     if (w >= W.length) { go('map'); return; }
     go('game', { w, s });
   };
-  ACT.openGift = (d) => {
-    const it = d.id ? ART.ITEMS.find((x) => x.id === d.id) : null;
+  ACT.openGift = () => {
+    const nx = G && G.giftQ && G.giftQ.shift(); if (!nx) return;
+    const it = nx.id ? nx : null; const d = { bonus: nx.bonus || 0 };
     const old = $('.modalBg'); if (old) old.style.display = 'none';
     const bg = document.createElement('div'); bg.className = 'modalBg'; bg.id = 'giftM';
     bg.innerHTML = `<div class="modal"><h2>두근두근 선물 상자!</h2><p>상자를 톡 눌러 봐요</p><div class="gift shake" id="giftBox">${ART.giftSVG(false)}</div></div>`;
@@ -419,8 +425,10 @@ const UI = (() => {
   ACT.giftDone = () => {
     const g = $('#giftM'); if (g) g.remove();
     const old = $('.modalBg'); if (old) old.style.display = '';
+    const btn = document.querySelector('[data-a="openGift"]');
+    if (G && G.giftQ && G.giftQ.length) { if (btn) btn.textContent = '🎁 선물 하나 더 열기!'; return; }
     const r = $('#afterGift'); if (r) { r.style.opacity = '1'; r.style.pointerEvents = ''; }
-    const btn = document.querySelector('[data-a="openGift"]'); if (btn) btn.remove();
+    if (btn) btn.remove();
   };
 
   /* ---------- 옷방 ---------- */

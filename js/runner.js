@@ -142,7 +142,8 @@ const Runner = (() => {
       if (hi && g.state === 'run') { g.hintShown = true; g.opt.onHint && g.opt.onHint(true); }
     }
     // 도착
-    if (g.state === 'run' && me >= g.finishX - 30 && g.obs.every((o) => o.done)) {
+    if (g.state === 'run' && me >= g.finishX + 70 && g.obs.every((o) => o.done)) {
+      if (g.tapHint) { g.tapHint = false; g.opt.onHint && g.opt.onHint(null); }
       g.state = 'rescue'; g.target = 0; g.rescueT = 0;
     }
     if (g.state === 'rescue') {

@@ -1,6 +1,6 @@
 /* 토리의 반짝 달리기 — 서비스 워커: 인터넷이 있으면 새 파일, 없으면 저장해 둔 것 */
-const CACHE = 'tori-run-v1';
-const FILES = ['./', 'index.html', 'css/style.css?v=1', 'js/art.js?v=1', 'js/questions.js?v=1', 'js/core.js?v=1', 'js/runner.js?v=1', 'js/screens.js?v=1',
+const CACHE = 'tori-run-v2';
+const FILES = ['./', 'index.html', 'css/style.css?v=2', 'js/art.js?v=2', 'js/questions.js?v=2', 'js/core.js?v=2', 'js/runner.js?v=2', 'js/screens.js?v=2',
   'fonts/jua-ko.woff2', 'fonts/jua-latin.woff2', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => Promise.all(FILES.map((f) => fetch(f, { cache: 'reload' }).then((r) => r.ok && c.put(f, r)).catch(() => {})))).then(() => self.skipWaiting()));
