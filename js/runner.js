@@ -25,7 +25,7 @@ const Runner = (() => {
   function init() {
     cv = document.getElementById('cv'); c = cv.getContext('2d');
     resize(); window.addEventListener('resize', resize);
-    cv.addEventListener('pointerdown', (e) => { if (G) { e.preventDefault(); tap(); } });
+    cv.addEventListener('pointerdown', (e) => { if (G) { e.preventDefault(); if (!catchFlyer(e.clientX, e.clientY)) tap(); } });
     window.addEventListener('pointerup', release); window.addEventListener('pointercancel', release);
   }
   function resize() {
@@ -105,6 +105,15 @@ const Runner = (() => {
     }
   }
   function release() { holding = false; }
+  /* 황금 나비(낮) · 별똥별(밤): 톡 잡으면 당근 10 */
+  function catchFlyer(x, y) {
+    const f = G && G.flyer;
+    if (!f || f.caught || f.gone) return false;
+    if (Math.hypot(x - f.x, y - f.y) > 70 * u) return false;
+    f.caught = true; Sfx.gold(); burst(f.x, f.y, '#ffd43b', 24); burst(f.x, f.y, '#fff', 10);
+    G.opt.onFlyer && G.opt.onFlyer(f.x, f.y, f.kind);
+    return true;
+  }
   function answered(kind) {
     if (!G) return;
     const o = G.obs.find((o) => o.asked && !o.done);
@@ -242,6 +251,16 @@ const Runner = (() => {
         }
         if (g.rescueT > 3.0 && !g.ended) { g.ended = true; g.opt.onFinish({ gold: g.gold.slice(), pole: g.pole ? g.pole.tier : 1 }); }
       }
+    }
+    // 행운: 판마다 한 번, 하늘을 가로질러요
+    if (!g.boss && g.time > 9 && !g.flyer && Math.random() < dt * 0.15) {
+      const night = g.env.phase === 'night';
+      g.flyer = { kind: night ? 'meteor' : 'butterfly', x: W + 40, y: H * (0.18 + Math.random() * 0.15), vx: night ? -520 : -170, t: 0 };
+    }
+    if (g.flyer && !g.flyer.gone) {
+      const f = g.flyer; f.t += dt; f.x += f.vx * dt; f.y += (f.kind === 'meteor' ? 60 : Math.sin(f.t * 5) * 60) * dt;
+      if (f.caught) { f.y -= 200 * dt; if (f.t > 9) f.gone = true; }
+      if (f.x < -60) f.gone = true;
     }
     // 아이템
     const magnet = P && P.k === 'star';
@@ -504,6 +523,7 @@ const Runner = (() => {
       c.globalAlpha = 1;
     }
     for (const a of g.amb) drawAmb(g.env.phase === 'night' && g.T.amb === 'butterfly' ? 'firefly' : g.T.amb, a);
+    drawFlyer();
     drawSeason();
     // 파워업 남은 시간
     if (g.power) {
@@ -560,6 +580,25 @@ const Runner = (() => {
       const x = sx + (B.x - sx) * k, y = sy + (B.y - sy) * k - Math.sin(k * Math.PI) * 140 * u;
       if (sh.t < 1) { c.save(); c.translate(x, y); c.rotate(k * 12); drawCarrot(0, 0, sh.big ? 1.5 : 1.1, sh.big ? 'gold' : null); c.restore(); }
     }
+  }
+
+  function drawFlyer() {
+    const f = G.flyer; if (!f || f.gone || f.caught) return;
+    c.save();
+    if (f.kind === 'meteor') {
+      const gr = c.createLinearGradient(f.x, f.y, f.x + 160 * u, f.y - 20 * u);
+      gr.addColorStop(0, 'rgba(255,243,163,1)'); gr.addColorStop(1, 'rgba(255,243,163,0)');
+      c.strokeStyle = gr; c.lineWidth = 8 * u; c.lineCap = 'round'; c.beginPath(); c.moveTo(f.x, f.y); c.lineTo(f.x + 160 * u, f.y - 20 * u); c.stroke();
+      drawStar(f.x, f.y, 20 * u, '#fff3a3', f.t * 6);
+    } else {
+      const flap = Math.abs(Math.sin(f.t * 12)) * 0.8 + 0.2, s = 1.8 * u;
+      c.fillStyle = 'rgba(255,224,102,.35)'; circle(f.x, f.y, 40 * u);
+      c.fillStyle = '#ffd43b';
+      c.beginPath(); c.ellipse(f.x - 10 * s, f.y, 11 * s * flap, 14 * s, -0.4, 0, 7); c.ellipse(f.x + 10 * s, f.y, 11 * s * flap, 14 * s, 0.4, 0, 7); c.fill(); ol(2);
+      c.fillStyle = OLc; c.fillRect(f.x - 2 * s, f.y - 10 * s, 4 * s, 20 * s);
+      drawStar(f.x + 24 * u, f.y - 22 * u, 7 * u, '#fff', f.t * 4);
+    }
+    c.restore();
   }
 
   /* ---------- 그림 조각 ---------- */

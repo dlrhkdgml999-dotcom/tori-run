@@ -99,7 +99,7 @@ const UI = (() => {
       </div></div>`;
     homeLife();
     if (!s.seen.intro) { setTimeout(() => { if (S().seen.intro || cur !== 'home' || $('.story')) return; Story.play('intro', () => { S().seen.intro = true; Store.save(true); dailyBonus(); }); }, 300); }
-    else if (!birthday()) dailyBonus();
+    else if (!birthday() && !christmas()) dailyBonus();
   }
   /* 가만히 두면 토리가 졸고, 친구들이 가끔 말해요 */
   function homeLife() {
@@ -135,7 +135,8 @@ const UI = (() => {
     const ex = wasSleeping ? 'wow' : pick(['happy', 'wink', 'wow']);
     w.innerHTML = lookSVG(S().look, 'cheer', ex);
     w.classList.remove('cheer'); void w.offsetWidth; w.classList.add('cheer');
-    const line = wasSleeping ? '앗! 깜짝이야! 잠깐 졸았어 히히' : pick(TORI_LINES);
+    const ph = Runner.envNow().phase;
+    const line = wasSleeping ? '앗! 깜짝이야! 잠깐 졸았어 히히' : pick(ph === 'night' ? ['하암… 졸려. 그래도 한 판만!', '별이 반짝반짝 예쁘다!', '밤에는 별똥별이 날아다닌대!', '내일 또 놀자~'] : ph === 'sunset' ? ['노을이 예쁘다!', '저녁 먹었어?', '하늘이 분홍색이야!'] : TORI_LINES);
     const st = $('.stageTori'); const ob = st.querySelector('.bubble'); if (ob) ob.remove();
     const b = document.createElement('div'); b.className = 'bubble'; b.textContent = line; st.appendChild(b);
     Voice.say(line); Sfx.pop();
@@ -144,6 +145,17 @@ const UI = (() => {
     homeLife();
   };
   function goldCount() { return Object.values(S().gold || {}).reduce((a, g) => a + g.filter(Boolean).length, 0); }
+  function christmas() {
+    const s = S(), d = new Date();
+    if (d.getMonth() !== 11 || (d.getDate() !== 24 && d.getDate() !== 25) || s.xmasDone === d.getFullYear()) return false;
+    s.xmasDone = d.getFullYear(); s.owned.santa = true; Store.save(true);
+    setTimeout(() => {
+      modal(`<div class="tori">${lookSVG(Object.assign({}, s.look, { hat: 'santa', face: 'scarf' }), 'cheer', 'happy')}</div><h2>🎄 메리 크리스마스!</h2><p>토리가 산타 모자를 선물했어요!<br>${carrotTag().replace('<img', '<img style="width:34px;vertical-align:middle"')} 50도 함께!</p><div class="row"><button class="btn pink big" data-a="xmasTake">고마워! 🎅</button></div>`);
+      confetti(innerWidth / 2, innerHeight * 0.3, 80); Sfx.gift(); Voice.say('메리 크리스마스! 산타 모자 선물이야!');
+    }, 400);
+    return true;
+  }
+  ACT.xmasTake = () => { closeModal(); addCarrots(50); S().look.hat = 'santa'; Store.save(true); go('home'); };
   function birthday() {
     const s = S(), b = s.bday;
     if (!b || !b.m) return false;
@@ -249,6 +261,10 @@ const UI = (() => {
     { id: 'photo3', icon: '📸', name: '사진 작가', desc: '사진 3장 찍기', ok: (s) => (s.stat.photos || 0) >= 3 },
     { id: 'day3', icon: '📅', name: '3일 연속', desc: '3일 연속 놀러 오기', ok: (s) => (s.streak || 0) >= 3 },
     { id: 'block10', icon: '❓', name: '구름 콩콩', desc: '선물 구름 10번 콩!', ok: (s) => (s.stat.blocks || 0) >= 10 },
+    { id: 'flyer3', icon: '🦋', name: '행운 사냥꾼', desc: '황금 나비·별똥별 3번 잡기', ok: (s) => (s.stat.flyers || 0) >= 3 },
+    { id: 'bonus1', icon: '🌧️', name: '당근 비', desc: '보너스 길 달리기', ok: (s) => (s.stat.bonus || 0) >= 1 },
+    { id: 'bottle3', icon: '🍾', name: '편지 친구', desc: '병 편지 3통 열기', ok: (s) => (s.stat.bottles || 0) >= 3 },
+    { id: 'rich', icon: '💰', name: '당근 부자', desc: '당근 모두 1000개 모으기', ok: (s) => (s.earned || 0) >= 1000 },
   ];
   const stat = () => (S().stat = S().stat || {});
   function checkStamps(quiet) {
@@ -329,7 +345,7 @@ const UI = (() => {
   ];
   ACT.bottle = () => {
     const st = S(); if (st.bottleDay === today()) return;
-    st.bottleDay = today();
+    st.bottleDay = today(); stat().bottles = (stat().bottles || 0) + 1; setTimeout(checkStamps, 1500);
     const n = 10 + Math.floor(Math.random() * 4) * 5;
     addCarrots(n); Store.save(true); Sfx.gift();
     const el = document.querySelector('.bottle'); if (el) el.remove();
@@ -402,7 +418,7 @@ const UI = (() => {
       world: W[w].id, count: qs.length, seed: Math.floor(Math.random() * 6), look: st.look,
       team: st.team.filter((id) => st.friends[id]).slice(0, 3).map((id) => ({ id, top: st.friends[id].top || '' })),
       rescue: G.rescue, tapHint: !st.seen.tap, goldHint: !st.seen.gold, blockHint: !st.seen.block,
-      onAsk, onCarrot, onPass, onFinish: finish, onHint, onGold, onPole, onBlock, onBossHp,
+      onAsk, onCarrot, onPass, onFinish: finish, onHint, onGold, onPole, onBlock, onBossHp, onFlyer,
     });
     st.plays++; Store.save();
     Voice.say(bonus ? '당근 비다! 마음껏 먹자!' : boss ? '심술 구름이다! 문제를 맞혀서 당근을 던지자!' : pick(['출발!', '달려 보자!', '준비, 출발!', '친구야, 기다려! 금방 갈게!']));
@@ -435,6 +451,13 @@ const UI = (() => {
     const el = document.querySelectorAll('.goldHud i')[i]; if (el) el.classList.add('on');
     banner('✨ 숨은 황금 당근! ✨'); flyText('황금 당근!', x - 40, y - 50, '#f59f00');
     Voice.say(pick(['우와! 황금 당근이다!', '숨은 황금 당근 찾았다!', '반짝반짝 황금 당근!']));
+  }
+  function onFlyer(x, y, kind) {
+    if (!G) return;
+    G.field += 10; addCarrots(10); flyText('+10 🥕', x - 30, y - 30, '#f59f00');
+    banner(kind === 'meteor' ? '🌠 별똥별을 잡았다!' : '🦋 황금 나비를 잡았다!');
+    Voice.say(kind === 'meteor' ? '별똥별을 잡았다! 소원을 빌어 봐!' : '황금 나비다! 행운이 올 거야!');
+    stat().flyers = (stat().flyers || 0) + 1; mission('shine', 1);
   }
   function onPole(tier) {
     const B = [0, 10, 20, 30, 50][tier];
@@ -550,7 +573,7 @@ const UI = (() => {
   ACT.quitGame = () => { G = null; Runner.stop(); go('map'); };
 
   /* ---------- 판 끝 ---------- */
-  const SPECIAL_POOL = () => ART.ITEMS.filter((it) => it.special && !it.gold && !it.ending);
+  const SPECIAL_POOL = () => ART.ITEMS.filter((it) => it.special && !it.gold && !it.ending && !it.event);
   function finish(res) {
     if (!G || G.done) return;
     G.done = true;
@@ -567,7 +590,7 @@ const UI = (() => {
     st.recent = [...G.qs.slice(0, G.qi + 1).map((q) => q.key), ...st.recent].slice(0, 120);
     if (G.boss) return bossFinish(firsts, n, giftQ, pickGift);
     if (G.bonus) {
-      st.bonusDay = today(); addCarrots(15); Store.save(true);
+      st.bonusDay = today(); stat().bonus = (stat().bonus || 0) + 1; addCarrots(15); Store.save(true); setTimeout(checkStamps, 1800);
       Sfx.fanfare(); confetti(innerWidth / 2, innerHeight * 0.3, 70);
       modal(`<div class="result"><div class="big">🥕🌧️🐰</div><h2>당근 비 끝!</h2><div class="gain">${carrotTag()}<b>+${G.field + G.poleBonus + 15}</b></div>
         <div class="gainParts"><span>🥕 길 ${G.field}</span><span>🏁 깃발 ${G.poleBonus}</span><span>🎁 보너스 15</span></div><p>내일 또 와요! 🌙</p>
@@ -720,7 +743,7 @@ const UI = (() => {
         const secret = it.special && !own;
         return `<button class="card ${worn ? 'worn' : ''} ${it.special ? 'special' : ''} ${secret ? 'secret' : ''} ${!own && !it.special && it.price > s.carrots ? 'cant' : ''}" data-a="pickItem" data-id="${it.id}">
           <div class="th">${thumb(lk, it.cat)}</div><div class="nm">${secret ? '???' : it.name}</div>
-          ${own ? '<div class="tag">내 거예요</div>' : it.special ? '<div class="tag">🎁 별 3개 선물</div>' : `<div class="pr">${carrotTag()}${it.price}</div>`}</button>`;
+          ${own ? '<div class="tag">내 거예요</div>' : it.special ? `<div class="tag">${it.gold ? `✨ 황금 당근 ${it.gold}개` : it.ending ? '🌈 여정 끝' : it.event ? '🎄 크리스마스' : '🎁 별 3개 선물'}</div>` : `<div class="pr">${carrotTag()}${it.price}</div>`}</button>`;
       }).join('');
     }
     const newIn = (cat) => cat === 'fur' ? Object.entries(ART.FURS).some(([k, f]) => !s.owned['fur:' + k] && f.price <= s.carrots) : ART.ITEMS.some((it) => it.cat === cat && !it.special && !s.owned[it.id] && it.price <= s.carrots);
@@ -747,7 +770,10 @@ const UI = (() => {
       if (s.look[it.cat]) Voice.say(pick(['예쁘다!', '잘 어울려!', '마음에 들어!', '멋지지?']));
       return;
     }
-    if (it.special) { toast('🎁 별 3개를 받으면 선물 상자에서 나와요!'); Voice.say('별 세 개를 받으면 선물 상자에서 나와!'); return; }
+    if (it.special) {
+      const m = it.gold ? `황금 당근을 ${it.gold}개 모으면 받아요!` : it.ending ? '여정을 끝까지 가면 받아요!' : it.event ? '크리스마스에 선물로 와요!' : '별 3개를 받으면 선물 상자에서 나와요!';
+      toast('🎁 ' + m); Voice.say(m); return;
+    }
     CL.tryOn = { [it.cat]: it.id }; closet();
     buyAsk(it.name, it.price, () => { s.owned[it.id] = true; s.look[it.cat] = it.id; });
   };
@@ -803,7 +829,7 @@ const UI = (() => {
     const s = S(), f = ART.FRIENDS.find((x) => x.id === d.id), me = s.friends[f.id];
     const inTeam = s.team.includes(f.id);
     modal(`<div style="width:200px;margin:0 auto">${ART.friend(f.id, me.top)}</div><h2>${f.name} <small style="font-size:22px;color:#9b8291">${f.kind}</small></h2>
-      <div class="topRow">${ART.TOPPERS.map((t) => `<button class="chip ${me.top === t.id ? 'on' : ''}" data-a="topper" data-id="${f.id}" data-t="${t.id}">${t.id ? ART.friend(f.id, t.id) : '🚫'} ${t.name}</button>`).join('')}</div>
+      <p style="font-size:21px;margin:2px 0 6px">💕 좋아하는 것: ${esc(f.like || '')}</p><div class="topRow">${ART.TOPPERS.map((t) => `<button class="chip ${me.top === t.id ? 'on' : ''}" data-a="topper" data-id="${f.id}" data-t="${t.id}">${t.id ? ART.friend(f.id, t.id) : '🚫'} ${t.name}</button>`).join('')}</div>
       <div class="row"><button class="btn ${inTeam ? '' : 'mint'} big" data-a="teamToggle" data-id="${f.id}">${inTeam ? '쉬게 하기' : '🏃 같이 달리기'}</button></div>`, { x: true });
     Voice.say(`안녕, ${f.name}!`);
   };
@@ -830,7 +856,7 @@ const UI = (() => {
     app.innerHTML = `<div class="screen bg"><div class="topbar">${back()}<div class="title">📸 토리 사진관</div><button class="btn" data-a="go" data-to="album">🖼️ 앨범</button></div>
       <div class="screen studio" style="position:relative;flex:1;animation:none">
         <div class="studioMain">
-          <div class="photoStage" id="pstage"><svg class="bd" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice">${ART.backdrop(ST.bd)}</svg><div class="trash" id="trash">🗑️</div></div>
+          <div class="photoStage" id="pstage"><svg class="bd" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice">${ART.backdrop(ST.bd)}</svg><svg class="frameTop" viewBox="0 0 1000 600" preserveAspectRatio="none">${ART.frame(ST.frame || '')}</svg><div class="trash" id="trash">🗑️</div></div>
           <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
             <button class="btn" data-a="pose">🔄 토리 포즈</button>
             <button class="btn pink big" data-a="snap">📸 찰칵!</button>
@@ -838,6 +864,7 @@ const UI = (() => {
         </div>
         <div class="studioSide">
           <div class="panel"><h3>배경</h3><div class="bdList">${ART.BACKDROPS.map((b) => `<button class="${ST.bd === b.id ? 'on' : ''}" data-a="bd" data-id="${b.id}" aria-label="${b.name}"><svg viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice">${ART.backdrop(b.id)}</svg></button>`).join('')}</div></div>
+          <div class="panel"><h3>테두리</h3><div class="frList">${ART.FRAMES.map((f) => `<button class="${(ST.frame || '') === f.id ? 'on' : ''}" data-a="frame" data-id="${f.id}">${f.id ? `<svg viewBox="0 0 1000 600">${ART.frame(f.id)}</svg>` : '🚫'}</button>`).join('')}</div></div>
           <div class="panel"><h3>스티커 (끌어서 옮겨요)</h3><div class="stkList">${ART.STICKERS.map((e) => `<button data-a="stk" data-e="${e}">${e}</button>`).join('')}</div></div>
           <div class="panel" style="overflow:auto;min-height:0"><h3>친구 부르기</h3><div style="display:flex;flex-wrap:wrap;gap:6px">${mine.length ? mine.map((id) => `<button class="chip ${ST.pieces.some((p) => p.id === id) ? 'on' : ''}" data-a="callF" data-id="${id}" style="padding:4px 6px">${ART.friend(id, s.friends[id].top)}</button>`).join('') : '<p style="font-size:18px;margin:0;color:#9b8291">친구를 구하면 같이 찍을 수 있어요!</p>'}${Object.keys(s.boss || {}).map((i) => `<button class="chip ${ST.pieces.some((p) => p.kind === 'boss' && p.i == i) ? 'on' : ''}" data-a="callB" data-i="${i}" style="padding:4px 6px">${ART.boss(+i, 'happy')}</button>`).join('')}</div></div>
         </div></div></div>`;
@@ -886,6 +913,7 @@ const UI = (() => {
     };
   }
   ACT.bd = (d) => { ST.bd = d.id; studio(); };
+  ACT.frame = (d) => { ST.frame = d.id; studio(); Sfx.pop(); };
   ACT.pose = () => { ST.pose++; renderPieces(); Sfx.pop(); };
   ACT.stk = (d) => {
     if (ST.pieces.filter((p) => p.kind === 'stk').length >= 24) { toast('스티커가 가득 찼어요!'); return; }
@@ -915,7 +943,8 @@ const UI = (() => {
       const h = w * ratio;
       body += svg.replace('<svg ', `<svg x="${p.x * 10 - w / 2}" y="${p.y * 6 - h}" `).replace(/width="\d+" height="\d+"/, `width="${w}" height="${h}"`);
     }
-    body += `<text x="980" y="585" font-size="22" text-anchor="end" fill="#fff" opacity=".85" font-family="sans-serif">토리의 반짝 달리기 · ${today()}</text>`;
+    body += ART.frame(ST.frame || '');
+    body += `<text x="975" y="580" font-size="20" text-anchor="end" fill="#fff" opacity=".9" font-family="sans-serif" stroke="#6e5363" stroke-width="3" paint-order="stroke">토리의 반짝 달리기 · ${today()}</text>`;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" width="1000" height="600">${body}</svg>`;
   }
   ACT.snap = () => {

@@ -57,7 +57,9 @@ const ART = (() => {
     { id: 'sunhat', cat: 'hat', name: '밀짚모자', price: 90 },
     { id: 'chef', cat: 'hat', name: '요리사 모자', price: 120 },
     { id: 'headphones', cat: 'hat', name: '헤드폰', price: 150 },
+    { id: 'beanie', cat: 'hat', name: '털모자', price: 50 },
     { id: 'tiara', cat: 'hat', name: '공주 티아라', special: true },
+    { id: 'santa', cat: 'hat', name: '산타 모자', special: true, event: true },
     { id: 'unicorn', cat: 'hat', name: '유니콘 뿔', special: true },
     // 옷
     { id: 'stripe', cat: 'cloth', name: '줄무늬 티', price: 15 },
@@ -81,6 +83,7 @@ const ART = (() => {
     { id: 'glitter', cat: 'face', name: '반짝 볼', price: 20 },
     { id: 'flowersticker', cat: 'face', name: '꽃 스티커', price: 20 },
     { id: 'bandaid', cat: 'face', name: '하트 반창고', price: 25 },
+    { id: 'scarf', cat: 'face', name: '빨간 목도리', price: 35 },
     { id: 'heartglasses', cat: 'face', name: '하트 안경', special: true },
     // 신발
     { id: 'sneakers', cat: 'shoes', name: '빨간 운동화', price: 15 },
@@ -275,6 +278,8 @@ const ART = (() => {
         return `<circle cx="84" cy="118" r="14" fill="#fff" fill-opacity=".25" stroke="#e8590c" stroke-width="3.4"/><circle cx="116" cy="118" r="14" fill="#fff" fill-opacity=".25" stroke="#e8590c" stroke-width="3.4"/><path d="M98 116 Q100 113 102 116" fill="none" stroke="#e8590c" stroke-width="3"/>`;
       case 'sunglasses':
         return `<rect x="68" y="108" width="30" height="20" rx="9" fill="#343a40" stroke="${OL}" stroke-width="2.4"/><rect x="102" y="108" width="30" height="20" rx="9" fill="#343a40" stroke="${OL}" stroke-width="2.4"/><path d="M98 114 h4" stroke="${OL}" stroke-width="3"/><path d="M74 113 l8 0" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/><path d="M108 113 l8 0" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/>`;
+      case 'scarf':
+        return `<path d="M60 160 Q100 182 140 160 L142 172 Q100 196 58 172Z" ${st('#ff6b6b')}/><path d="M118 172 L124 206 L138 202 L130 170Z" ${st('#ff6b6b')}/><path d="M66 168 Q100 186 134 168" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="6 6"/><path d="M122 200 l2 6 M128 199 l2 6 M134 198 l2 6" stroke="#fff" stroke-width="2"/>`;
       case 'goldstar':
         return star(84, 118, 15, '#ffd43b', 0, 2.6) + star(116, 118, 15, '#ffd43b', 0, 2.6) + `<path d="M97 116 Q100 113 103 116" fill="none" stroke="${OL}" stroke-width="2.6"/>` + `<circle cx="84" cy="119" r="4" fill="${OL}"/><circle cx="116" cy="119" r="4" fill="${OL}"/>` + sparkle(126, 104, 5);
       case 'heartglasses':
@@ -328,6 +333,10 @@ const ART = (() => {
           `<rect x="30" y="98" width="26" height="40" rx="12" ${st('#b197fc')}/><rect x="144" y="98" width="26" height="40" rx="12" ${st('#b197fc')}/>` + heart(43, 118, 6, '#fff', 1.4) + heart(157, 118, 6, '#fff', 1.4);
       case 'tiara':
         return `<path d="M64 80 Q100 60 136 80 L128 62 L116 70 L100 42 L84 70 L72 62Z" ${st('#e9ecef')}/><path d="M100 50 l7 12 l-7 10 l-7 -10Z" fill="#ff6b9d" stroke="${OL}" stroke-width="2"/><circle cx="76" cy="70" r="3.4" fill="#74c0fc"/><circle cx="124" cy="70" r="3.4" fill="#74c0fc"/>` + sparkle(112, 52, 5) + sparkle(86, 54, 4);
+      case 'beanie':
+        return `<path d="M50 92 Q52 38 100 36 Q148 38 150 92Z" ${st('#74c0fc')}/><path d="M66 50 v40 M84 42 v48 M100 40 v50 M116 42 v48 M134 50 v40" stroke="#a5d8ff" stroke-width="5"/><rect x="46" y="80" width="108" height="22" rx="11" ${st('#fff')}/><circle cx="100" cy="30" r="14" ${st('#fff')}/>`;
+      case 'santa':
+        return `<path d="M54 86 Q60 30 112 28 Q150 30 166 70 L150 78 Q140 52 116 50Z" ${st('#ff6b6b')}/><rect x="48" y="76" width="106" height="22" rx="11" ${st('#fff')}/><circle cx="160" cy="82" r="13" ${st('#fff')}/>` + sparkle(80, 56, 5);
       case 'rainbowcrown': {
         const cols = ['#ff8fa3', '#ffc078', '#ffe066', '#8ce99a', '#74c0fc', '#b197fc'];
         let c = `<path d="M62 78 L58 34 L78 52 L90 26 L100 46 L110 26 L122 52 L142 34 L138 78Z" ${st('#ffe066')}/>`;
@@ -387,18 +396,18 @@ const ART = (() => {
 
   /* ---------- 친구들 ---------- */
   const FRIENDS = [
-    { id: 'piyo',   name: '삐약이',  kind: '병아리' },
-    { id: 'dara',   name: '도토리',  kind: '다람쥐' },
-    { id: 'gomi',   name: '꿀곰이',  kind: '아기곰' },
-    { id: 'pengi',  name: '펭펭이',  kind: '펭귄' },
-    { id: 'nyang',  name: '귤냥이',  kind: '고양이' },
-    { id: 'mung',   name: '몽몽이',  kind: '강아지' },
-    { id: 'yoyo',   name: '여울이',  kind: '아기 여우' },
-    { id: 'hami',   name: '볼볼이',  kind: '햄스터' },
-    { id: 'kkul',   name: '꿀꿀이',  kind: '아기 돼지' },
-    { id: 'gaegul', name: '개굴이',  kind: '개구리' },
-    { id: 'pan',    name: '판순이',  kind: '판다' },
-    { id: 'mae',    name: '몽글이',  kind: '아기 양' },
+    { id: 'piyo',   name: '삐약이',  kind: '병아리' , like: '노래 부르기, 해바라기 씨' },
+    { id: 'dara',   name: '도토리',  kind: '다람쥐' , like: '도토리 모으기' },
+    { id: 'gomi',   name: '꿀곰이',  kind: '아기곰' , like: '꿀이랑 낮잠' },
+    { id: 'pengi',  name: '펭펭이',  kind: '펭귄' , like: '얼음 미끄럼틀' },
+    { id: 'nyang',  name: '귤냥이',  kind: '고양이' , like: '귤이랑 햇볕 쬐기' },
+    { id: 'mung',   name: '몽몽이',  kind: '강아지' , like: '공 던지기 놀이' },
+    { id: 'yoyo',   name: '여울이',  kind: '아기 여우' , like: '숨바꼭질' },
+    { id: 'hami',   name: '볼볼이',  kind: '햄스터' , like: '볼에 간식 가득 넣기' },
+    { id: 'kkul',   name: '꿀꿀이',  kind: '아기 돼지' , like: '진흙 놀이, 수박' },
+    { id: 'gaegul', name: '개굴이',  kind: '개구리' , like: '비 오는 날 첨벙첨벙' },
+    { id: 'pan',    name: '판순이',  kind: '판다' , like: '대나무 간식, 구르기' },
+    { id: 'mae',    name: '몽글이',  kind: '아기 양' , like: '구름 구경, 포근한 낮잠' },
   ];
   const TOPPERS = [
     { id: '', name: '없음' },
@@ -589,6 +598,24 @@ const ART = (() => {
     return s;
   }
 
+  const FRAMES = [{ id: '', name: '없음' }, { id: 'heart', name: '하트' }, { id: 'star', name: '별' }, { id: 'flower', name: '꽃' }, { id: 'rainbow', name: '무지개' }];
+  function frame(id, W = 1000, H = 600) {
+    if (!id) return '';
+    let s = '';
+    const edge = (fn) => {
+      for (let i = 0; i <= 13; i++) { const x = 34 + i * (W - 68) / 13; s += fn(x, 30, i) + fn(x, H - 30, i + 1); }
+      for (let i = 1; i < 7; i++) { const y = 30 + i * (H - 60) / 7; s += fn(34, y, i) + fn(W - 34, y, i + 1); }
+    };
+    if (id === 'rainbow') {
+      ['#ff8fa3', '#ffc078', '#ffe066', '#8ce99a', '#74c0fc', '#b197fc'].forEach((c, i) => { s += `<rect x="${6 + i * 6}" y="${6 + i * 6}" width="${W - 12 - i * 12}" height="${H - 12 - i * 12}" rx="${30 - i * 3}" fill="none" stroke="${c}" stroke-width="7"/>`; });
+      return s;
+    }
+    s += `<rect x="12" y="12" width="${W - 24}" height="${H - 24}" rx="28" fill="none" stroke="#fff" stroke-width="40" opacity=".85"/>`;
+    if (id === 'heart') edge((x, y, i) => heart(x, y, 17, ['#ff8fb6', '#ffc9de'][i % 2], 2.4));
+    if (id === 'star') edge((x, y, i) => star(x, y, 20, ['#ffe066', '#fff3bf'][i % 2], 0, 2.4));
+    if (id === 'flower') edge((x, y, i) => flower(x, y, 18, ['#ffa8c5', '#fff3a3', '#d0bfff'][i % 3]));
+    return s;
+  }
   const STICKERS = ['💖', '⭐', '🌸', '🎀', '🌈', '🦋', '🍓', '🎈', '✨', '🍭', '☁️', '🎵', '🥕', '👑', '🍰', '🌙'];
 
   /* ---------- 심술 구름 (보스) ----------
@@ -642,6 +669,6 @@ const ART = (() => {
       `<g transform="translate(96 40) scale(1.6)">${tori({ fur: 'white', hat: 'ribbon' }, 'cheer', 'happy').replace(/<\/?svg[^>]*>/g, '')}</g>` + sparkle(80, 100, 26) + sparkle(430, 140, 20) + sparkle(420, 420, 16) + `</svg>`;
   }
 
-  return { OL, FURS, ITEMS, CATS, FRIENDS, TOPPERS, BACKDROPS, STICKERS, BOSSES, BADGES, tori, friend, friendShadow, carrotSVG, giftSVG, backdrop, iconSVG, boss, badge, star, heart, sparkle, flower };
+  return { OL, FURS, ITEMS, CATS, FRIENDS, TOPPERS, BACKDROPS, STICKERS, BOSSES, BADGES, FRAMES, frame, tori, friend, friendShadow, carrotSVG, giftSVG, backdrop, iconSVG, boss, badge, star, heart, sparkle, flower };
 })();
 if (typeof module !== 'undefined') module.exports = ART;

@@ -402,3 +402,8 @@ button { font-family: var(--font); color: var(--ink); cursor: pointer; border: 0
 .letter { background: #fffbe8; border: 4px dashed #e8c36b; border-radius: 20px; padding: 14px 18px; font-size: 24px; line-height: 1.5; margin: 8px 0; }
 
 .jmap .bonusSign:not(.done) { animation: bob 2.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+
+.photoStage .frameTop { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
+.frList { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.frList button { aspect-ratio: 5/3; border-radius: 8px; padding: 0; background: #fff7fb; border: 3px solid transparent; font-size: 16px; overflow: hidden; }
+.frList button.on { border-color: var(--pink); } .frList svg { width: 100%; height: 100%; display: block; }
