@@ -17,6 +17,7 @@ const Store = (() => {
     recent: [],           // 최근 문제 키 (반복 줄이기)
     day: '', streak: 0, lastDay: '',
     set: { sfx: true, voice: true, music: true },
+    name: '재윤', pos: 0, gold: {}, boss: {}, stat: {}, stamps: {}, bday: null,
   });
   let S = blank();
   let memOnly = false;
@@ -107,7 +108,20 @@ const Sfx = (() => {
   const S = {
     tap() { if (on()) tone(660, 0, 0.07, 'triangle', 0.18); },
     jump() { if (on()) tone(380, 0, 0.22, 'sine', 0.25, 820); },
-    carrot() { if (on()) { tone(1046, 0, 0.09, 'triangle', 0.2); tone(1568, 0.06, 0.12, 'triangle', 0.18); } },
+    carrot(n = 1) {   // 연달아 먹으면 음이 올라가요
+      if (!on()) return;
+      const SC = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24];
+      const f = 784 * Math.pow(2, SC[Math.min(n - 1, SC.length - 1)] / 12);
+      tone(f, 0, 0.08, 'triangle', 0.2); tone(f * 1.5, 0.05, 0.1, 'triangle', 0.14);
+    },
+    bonk() { if (on()) { tone(220, 0, 0.08, 'square', 0.12, 330); [880, 1175, 1568].forEach((f, i) => tone(f, 0.08 + i * 0.06, 0.12, 'triangle', 0.16)); } },
+    gold() { if (on()) [1046, 1318, 1568, 2093, 2637].forEach((f, i) => tone(f, i * 0.07, 0.28, 'triangle', 0.18)); },
+    power() { if (on()) [523, 659, 784, 1046, 784, 1046, 1318].forEach((f, i) => tone(f, i * 0.06, 0.14, 'square', 0.07)); },
+    pole(t = 1) { if (on()) { tone(330, 0, 0.5, 'sine', 0.2, 990); for (let i = 0; i < t + 1; i++) tone(1046 * Math.pow(1.122, i * 2), 0.45 + i * 0.1, 0.18, 'triangle', 0.18); } },
+    hit(big) { if (on()) { tone(big ? 160 : 220, 0, 0.18, 'square', 0.14, 80); tone(660, 0.05, 0.12, 'triangle', 0.15); } },
+    wind() { if (on()) tone(400, 0, 0.5, 'sawtooth', 0.04, 150); },
+    whistle() { if (on()) tone(600, 0, 0.6, 'sine', 0.07, 1400); },
+    boom() { if (on()) { tone(120, 0, 0.35, 'square', 0.12, 50); [1318, 1568, 2093].forEach((f, i) => tone(f, 0.05 + i * 0.04, 0.2, 'triangle', 0.08)); } },
     star() { if (on()) [1046, 1318, 1568, 2093].forEach((f, i) => tone(f, i * 0.05, 0.16, 'triangle', 0.16)); },
     right() { if (on()) [523, 659, 784, 1046].forEach((f, i) => tone(f, i * 0.08, 0.22, 'triangle', 0.24)); },
     wrong() { if (on()) { tone(330, 0, 0.18, 'sine', 0.22, 260); tone(262, 0.16, 0.25, 'sine', 0.2, 220); } },

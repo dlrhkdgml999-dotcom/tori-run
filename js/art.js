@@ -102,6 +102,10 @@ const ART = (() => {
     { id: 'angelwings', cat: 'back', name: '천사 날개', price: 200 },
     { id: 'rainbowcape', cat: 'back', name: '무지개 망토', special: true },
     { id: 'fairywings', cat: 'back', name: '요정 날개', special: true },
+    { id: 'goldcape', cat: 'back', name: '황금 망토', special: true, gold: 12 },
+    { id: 'goldshoes', cat: 'shoes', name: '황금 운동화', special: true, gold: 24 },
+    { id: 'goldstar', cat: 'face', name: '황금 별 안경', special: true, gold: 36 },
+    { id: 'rainbowcrown', cat: 'hat', name: '무지개 왕관', special: true, ending: true },
   ];
   const CATS = [
     { id: 'hat', name: '머리', icon: '👑' },
@@ -127,13 +131,13 @@ const ART = (() => {
       case 'backpack':
         return `<rect x="34" y="168" width="40" height="50" rx="14" ${st('#7ec8a9')}/><rect x="40" y="190" width="28" height="18" rx="7" ${st('#a6e0c6')}/><circle cx="54" cy="199" r="3" fill="${OL}"/>`;
       case 'cape':
-        return `<path d="M78 172 Q60 200 26 238 Q60 246 96 236 Q120 200 122 172Z" ${st('#ff6b7a')}/><path d="M40 232 Q62 236 86 230" fill="none" stroke="#ffb3bb" stroke-width="4" stroke-linecap="round"/>`;
+        return `<path d="M80 168 Q44 186 8 222 Q16 236 26 232 Q20 246 40 246 Q70 252 98 238 Q122 200 122 170Z" ${st('#ff6b7a')}/><path d="M30 236 Q60 242 90 232" fill="none" stroke="#ffb3bb" stroke-width="4" stroke-linecap="round"/>`;
       case 'rainbowcape': {
         const cols = ['#ff8fa3', '#ffc078', '#ffe066', '#8ce99a', '#74c0fc', '#b197fc'];
-        let s = `<path id="rc" d="M78 172 Q58 202 22 240 Q60 250 98 238 Q120 200 122 172Z" ${st('#fff')}/>`;
-        s += `<clipPath id="rcc"><path d="M78 172 Q58 202 22 240 Q60 250 98 238 Q120 200 122 172Z"/></clipPath><g clip-path="url(#rcc)">`;
+        let s = `<path id="rc" d="M80 168 Q44 186 8 222 Q16 236 26 232 Q20 246 40 246 Q70 252 98 238 Q122 200 122 170Z" ${st('#fff')}/>`;
+        s += `<clipPath id="rcc"><path d="M80 168 Q44 186 8 222 Q16 236 26 232 Q20 246 40 246 Q70 252 98 238 Q122 200 122 170Z"/></clipPath><g clip-path="url(#rcc)">`;
         cols.forEach((c, i) => { s += `<rect x="0" y="${172 + i * 13}" width="140" height="14" fill="${c}"/>`; });
-        s += `</g><path d="M78 172 Q58 202 22 240 Q60 250 98 238 Q120 200 122 172Z" fill="none" stroke="${OL}" stroke-width="${SW}" stroke-linejoin="round"/>`;
+        s += `</g><path d="M80 168 Q44 186 8 222 Q16 236 26 232 Q20 246 40 246 Q70 252 98 238 Q122 200 122 170Z" fill="none" stroke="${OL}" stroke-width="${SW}" stroke-linejoin="round"/>`;
         return s + sparkle(44, 222, 7) + sparkle(70, 200, 5);
       }
       case 'wings':
@@ -153,6 +157,8 @@ const ART = (() => {
         const w = `<path d="M96 178 C70 128 30 112 14 136 C6 150 16 162 26 164 C14 172 18 188 32 188 C24 198 34 212 48 206 C48 218 64 222 74 210 C86 214 96 202 98 192Z" ${st('#fff')}/><path d="M40 152 Q64 156 84 176 M44 176 Q66 178 86 188 M58 198 Q74 196 90 196" fill="none" stroke="#dbe4ff" stroke-width="3" stroke-linecap="round"/>`;
         return `<g transform="translate(100 186) scale(1.35) translate(-100 -186)">${w}<g transform="translate(200 0) scale(-1 1)">${w}</g></g>` + sparkle(22, 118, 7, '#ffe066') + sparkle(178, 118, 7, '#ffe066');
       }
+      case 'goldcape':
+        return `<path d="M80 168 Q44 186 8 222 Q16 236 26 232 Q20 246 40 246 Q70 252 98 238 Q122 200 122 170Z" ${st('#ffd43b')}/><path d="M80 168 Q44 186 8 222" fill="none" stroke="#fff3bf" stroke-width="5" stroke-linecap="round"/>` + star(46, 222, 8, '#fff3bf', 0, 1.6) + star(72, 202, 6, '#fff3bf', 0.4, 1.6) + sparkle(36, 236, 6);
       case 'balloon':
         return `<path d="M140 200 Q158 150 166 96" fill="none" stroke="${OL}" stroke-width="2.4"/>` + heart(168, 74, 26, '#ff6b8b', 3) + `<ellipse cx="158" cy="62" rx="6" ry="9" fill="#fff" opacity=".6" transform="rotate(-30 158 62)"/>`;
     }
@@ -235,6 +241,8 @@ const ART = (() => {
         return g(`<ellipse cx="${x}" cy="${y}" rx="17" ry="10" ${st(furF)}/><path d="M${x - 16} ${y + 6} Q${x} ${y + 12} ${x + 18} ${y + 6}" fill="none" stroke="#63e6be" stroke-width="5" stroke-linecap="round"/><path d="M${x - 6} ${y - 8} L${x + 2} ${y + 6} M${x + 8} ${y - 8} L${x + 2} ${y + 6}" stroke="#63e6be" stroke-width="3.4" stroke-linecap="round"/>` + flower(x + 2, y - 6, 6, '#ffa8c5'));
       case 'ballet':
         return g(`<ellipse cx="${x + 2}" cy="${y}" rx="19" ry="11" ${st('#ffc9de')}/><path d="M${x - 4} ${y - 8} L${x + 6} ${y - 22} M${x + 8} ${y - 8} L${x - 2} ${y - 22}" stroke="#ff8fb6" stroke-width="2.6" stroke-linecap="round"/><path d="M${x - 4} ${y - 6} q6 -6 12 0" fill="none" stroke="#ff8fb6" stroke-width="2.4"/>`);
+      case 'goldshoes':
+        return g(`<ellipse cx="${x + 2}" cy="${y}" rx="20" ry="12" ${st('#ffd43b')}/><path d="M${x - 16} ${y + 6} Q${x + 2} ${y + 12} ${x + 20} ${y + 5}" fill="none" stroke="#fff" stroke-width="4"/>` + star(x + 4, y - 3, 6, '#fff3bf', 0, 1.4) + sparkle(x + 16, y - 8, 4));
       case 'cloudshoes':
         return g(`<circle cx="${x - 10}" cy="${y + 2}" r="9" ${st('#fff')}/><circle cx="${x + 2}" cy="${y - 4}" r="11" ${st('#fff')}/><circle cx="${x + 14}" cy="${y + 2}" r="9" ${st('#fff')}/><path d="M${x - 16} ${y + 6} h34" stroke="#fff" stroke-width="8"/>` + sparkle(x + 20, y - 10, 4, '#a5d8ff'));
     }
@@ -249,11 +257,13 @@ const ART = (() => {
       case 'happy': return smile(84) + smile(116);
       case 'wink': return open(84) + smile(116);
       case 'oops': return `<path d="M78 113 L90 121 L78 127" fill="none" stroke="${OL}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M122 113 L110 121 L122 127" fill="none" stroke="${OL}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>`;
+      case 'sleep': return `<path d="M77 118 Q84 125 91 118" fill="none" stroke="${OL}" stroke-width="3.4" stroke-linecap="round"/><path d="M109 118 Q116 125 123 118" fill="none" stroke="${OL}" stroke-width="3.4" stroke-linecap="round"/>`;
       case 'wow': return `<circle cx="84" cy="118" r="9" fill="${OL}"/><circle cx="116" cy="118" r="9" fill="${OL}"/>` + sparkle(87, 114, 4.5) + sparkle(119, 114, 4.5) + `<circle cx="81" cy="122" r="1.5" fill="#fff"/><circle cx="113" cy="122" r="1.5" fill="#fff"/>`;
     }
     return open(84) + open(116);
   }
   function mouth(expr) {
+    if (expr === 'sleep') return `<ellipse cx="100" cy="137" rx="4" ry="3" fill="#ff7b9c" stroke="${OL}" stroke-width="2"/>`;
     if (expr === 'oops') return `<ellipse cx="100" cy="138" rx="5" ry="6" fill="#d9486a" stroke="${OL}" stroke-width="2.4"/>`;
     if (expr === 'happy' || expr === 'wow' || expr === 'wink')
       return `<path d="M91 132 Q100 148 109 132Z" fill="#ff7b9c" stroke="${OL}" stroke-width="2.6" stroke-linejoin="round"/>`;
@@ -265,6 +275,8 @@ const ART = (() => {
         return `<circle cx="84" cy="118" r="14" fill="#fff" fill-opacity=".25" stroke="#e8590c" stroke-width="3.4"/><circle cx="116" cy="118" r="14" fill="#fff" fill-opacity=".25" stroke="#e8590c" stroke-width="3.4"/><path d="M98 116 Q100 113 102 116" fill="none" stroke="#e8590c" stroke-width="3"/>`;
       case 'sunglasses':
         return `<rect x="68" y="108" width="30" height="20" rx="9" fill="#343a40" stroke="${OL}" stroke-width="2.4"/><rect x="102" y="108" width="30" height="20" rx="9" fill="#343a40" stroke="${OL}" stroke-width="2.4"/><path d="M98 114 h4" stroke="${OL}" stroke-width="3"/><path d="M74 113 l8 0" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/><path d="M108 113 l8 0" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/>`;
+      case 'goldstar':
+        return star(84, 118, 15, '#ffd43b', 0, 2.6) + star(116, 118, 15, '#ffd43b', 0, 2.6) + `<path d="M97 116 Q100 113 103 116" fill="none" stroke="${OL}" stroke-width="2.6"/>` + `<circle cx="84" cy="119" r="4" fill="${OL}"/><circle cx="116" cy="119" r="4" fill="${OL}"/>` + sparkle(126, 104, 5);
       case 'heartglasses':
         return heart(84, 118, 13, '#ff8fb6', 2.6) + heart(116, 118, 13, '#ff8fb6', 2.6) + `<path d="M97 114 Q100 111 103 114" fill="none" stroke="${OL}" stroke-width="2.6"/>` + sparkle(80, 112, 3.5) + sparkle(112, 112, 3.5);
       case 'mustache':
@@ -316,6 +328,12 @@ const ART = (() => {
           `<rect x="30" y="98" width="26" height="40" rx="12" ${st('#b197fc')}/><rect x="144" y="98" width="26" height="40" rx="12" ${st('#b197fc')}/>` + heart(43, 118, 6, '#fff', 1.4) + heart(157, 118, 6, '#fff', 1.4);
       case 'tiara':
         return `<path d="M64 80 Q100 60 136 80 L128 62 L116 70 L100 42 L84 70 L72 62Z" ${st('#e9ecef')}/><path d="M100 50 l7 12 l-7 10 l-7 -10Z" fill="#ff6b9d" stroke="${OL}" stroke-width="2"/><circle cx="76" cy="70" r="3.4" fill="#74c0fc"/><circle cx="124" cy="70" r="3.4" fill="#74c0fc"/>` + sparkle(112, 52, 5) + sparkle(86, 54, 4);
+      case 'rainbowcrown': {
+        const cols = ['#ff8fa3', '#ffc078', '#ffe066', '#8ce99a', '#74c0fc', '#b197fc'];
+        let c = `<path d="M62 78 L58 34 L78 52 L90 26 L100 46 L110 26 L122 52 L142 34 L138 78Z" ${st('#ffe066')}/>`;
+        cols.forEach((col, i) => { c += `<circle cx="${70 + i * 12}" cy="68" r="5" fill="${col}" stroke="${OL}" stroke-width="1.6"/>`; });
+        return c + star(100, 20, 10, '#fff3a3', 0, 2) + sparkle(64, 40, 6) + sparkle(138, 40, 6);
+      }
       case 'unicorn':
         return `<path d="M88 66 L104 8 L116 66Z" ${st('#ffe066')}/><path d="M92 54 L112 46 M95 40 L110 34 M99 26 L107 22" stroke="${OL}" stroke-width="2.4" stroke-linecap="round"/>` + flower(72, 76, 10, '#ffc9de') + flower(130, 76, 10, '#d0bfff') + sparkle(126, 30, 6, '#fff');
     }
@@ -573,12 +591,57 @@ const ART = (() => {
 
   const STICKERS = ['💖', '⭐', '🌸', '🎀', '🌈', '🦋', '🍓', '🎈', '✨', '🍭', '☁️', '🎵', '🥕', '👑', '🍰', '🌙'];
 
+  /* ---------- 심술 구름 (보스) ----------
+     mood: angry hurt happy, col: 몸 색 */
+  const BOSSES = [
+    { name: '숫자 먹보 구름', col: '#a5b4d4', dark: '#7d8bb0' },
+    { name: '글자 엉킴 구름', col: '#a9c7a4', dark: '#7fa37a' },
+    { name: '파도 장난 구름', col: '#9fc8e0', dark: '#6fa4c4' },
+    { name: '대왕 심술 구름', col: '#b8a4d8', dark: '#8e76bf' },
+  ];
+  function boss(i, mood = 'angry') {
+    const B = BOSSES[i] || BOSSES[0];
+    const body = mood === 'happy' ? '#ffffff' : B.col;
+    let s = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 200" width="240" height="200">`;
+    if (mood === 'angry') s += `<path d="M150 150 L138 178 L152 176 L142 198 L168 166 L154 168 L164 150Z" fill="#ffe066" stroke="${OL}" stroke-width="3" stroke-linejoin="round"/>`;
+    const puffs = [[60, 100, 44], [100, 66, 52], [150, 64, 48], [190, 100, 42], [124, 112, 62], [70, 132, 34], [178, 134, 34]];
+    puffs.forEach(([x, y, r]) => { s += `<circle cx="${x}" cy="${y}" r="${r}" fill="${body}" stroke="${OL}" stroke-width="4"/>`; });
+    puffs.forEach(([x, y, r]) => { s += `<circle cx="${x}" cy="${y}" r="${r - 3.5}" fill="${body}"/>`; });
+    s += `<ellipse cx="96" cy="70" rx="20" ry="10" fill="#fff" opacity=".45" transform="rotate(-20 96 70)"/>`;
+    if (mood === 'angry') {
+      s += `<path d="M84 92 L110 104 M164 92 L138 104" stroke="${OL}" stroke-width="6" stroke-linecap="round"/>`;
+      s += `<ellipse cx="100" cy="114" rx="8" ry="10" fill="${OL}"/><ellipse cx="148" cy="114" rx="8" ry="10" fill="${OL}"/><circle cx="102" cy="110" r="3" fill="#fff"/><circle cx="150" cy="110" r="3" fill="#fff"/>`;
+      s += `<path d="M110 146 Q124 136 138 146" fill="none" stroke="${OL}" stroke-width="5" stroke-linecap="round"/>`;
+      s += `<ellipse cx="82" cy="134" rx="10" ry="6" fill="${B.dark}" opacity=".7"/><ellipse cx="166" cy="134" rx="10" ry="6" fill="${B.dark}" opacity=".7"/>`;
+    } else if (mood === 'hurt') {
+      s += `<path d="M90 104 L108 114 L90 124 M158 104 L140 114 L158 124" fill="none" stroke="${OL}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`;
+      s += `<ellipse cx="124" cy="146" rx="10" ry="8" fill="#d9486a" stroke="${OL}" stroke-width="3"/>`;
+      s += `<path d="M86 128 q-6 14 0 20 q6 -6 0 -20Z" fill="#74c0fc"/>`;
+    } else {
+      s += `<path d="M90 114 Q100 102 110 114 M138 114 Q148 102 158 114" fill="none" stroke="${OL}" stroke-width="5" stroke-linecap="round"/>`;
+      s += `<path d="M108 136 Q124 156 140 136Z" fill="#ff7b9c" stroke="${OL}" stroke-width="3.4" stroke-linejoin="round"/>`;
+      s += `<ellipse cx="84" cy="132" rx="12" ry="7" fill="#ffadc6"/><ellipse cx="164" cy="132" rx="12" ry="7" fill="#ffadc6"/>` + sparkle(196, 54, 9) + sparkle(46, 60, 7);
+    }
+    return s + `</svg>`;
+  }
+  const BADGES = [
+    { name: '숫자 배지', icon: '🔢', col: '#74c0fc' }, { name: '글자 배지', icon: '🌳', col: '#69db7c' },
+    { name: '바다 배지', icon: '🐚', col: '#ffa94d' }, { name: '무지개 배지', icon: '🌈', col: '#b197fc' },
+  ];
+  function badge(i, got = true) {
+    const B = BADGES[i];
+    const c = got ? B.col : '#e6dfe4';
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="100" height="120"><path d="M30 6 L44 46 L50 40 L56 46 L70 6Z" fill="${got ? '#ff8fa3' : '#eee'}" stroke="${OL}" stroke-width="3" stroke-linejoin="round"/>` +
+      `<circle cx="50" cy="74" r="38" fill="${got ? '#ffe066' : '#f1edf0'}" stroke="${OL}" stroke-width="4"/><circle cx="50" cy="74" r="28" fill="${c}" stroke="${OL}" stroke-width="3"/>` +
+      `<text x="50" y="86" text-anchor="middle" font-size="30">${got ? B.icon : '?'}</text>` + (got ? sparkle(80, 44, 7) : '') + `</svg>`;
+  }
+
   /* 앱 아이콘 */
   function iconSVG() {
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="ig" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd6e7"/><stop offset="1" stop-color="#d0ebff"/></linearGradient></defs><rect width="512" height="512" fill="url(#ig)"/>` +
       `<g transform="translate(96 40) scale(1.6)">${tori({ fur: 'white', hat: 'ribbon' }, 'cheer', 'happy').replace(/<\/?svg[^>]*>/g, '')}</g>` + sparkle(80, 100, 26) + sparkle(430, 140, 20) + sparkle(420, 420, 16) + `</svg>`;
   }
 
-  return { OL, FURS, ITEMS, CATS, FRIENDS, TOPPERS, BACKDROPS, STICKERS, tori, friend, friendShadow, carrotSVG, giftSVG, backdrop, iconSVG, star, heart, sparkle, flower };
+  return { OL, FURS, ITEMS, CATS, FRIENDS, TOPPERS, BACKDROPS, STICKERS, BOSSES, BADGES, tori, friend, friendShadow, carrotSVG, giftSVG, backdrop, iconSVG, boss, badge, star, heart, sparkle, flower };
 })();
 if (typeof module !== 'undefined') module.exports = ART;

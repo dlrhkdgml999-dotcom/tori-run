@@ -59,21 +59,28 @@ const UI = (() => {
   ACT.closeModal = closeModal;
 
   /* ---------- 첫 화면 ---------- */
-  const TORI_LINES = ['안녕! 나는 토리야!', '같이 달리자!', '당근 먹고 싶어!', '오늘 옷 예쁘지?', '히히, 간지러워!', '재윤아, 반가워!', '친구들을 구하러 가자!', '별을 모아 볼까?', '사진 찍을래?'];
+  const TORI_LINES = ['안녕! 나는 토리야!', '같이 달리자!', '당근 먹고 싶어!', '오늘 옷 예쁘지?', '히히, 간지러워!', '친구들을 구하러 가자!', '별을 모아 볼까?', '사진 찍을래?', '황금 당근 찾으러 가자!'];
+  const FRIEND_LINES = ['안녕!', '오늘도 달리자!', '토리 옷 예쁘다!', '당근 냠냠!', '구해 줘서 고마워!', '같이 사진 찍자!', '나도 꾸며 줘!', '심술 구름 혼내 주자!', '헤헤 💕'];
+  let idleT = 0, chatT = 0;
   function home() {
     const s = S();
     const team = s.team.filter((id) => s.friends[id]).slice(0, 3);
     const left = team.slice(0, 2), right = team.slice(2);
-    const fsvg = (id) => ART.friend(id, (s.friends[id] || {}).top || '');
+    const fsvg = (id) => `<span class="tf" data-a="friendTalk" data-id="${id}">${ART.friend(id, (s.friends[id] || {}).top || '')}</span>`;
     const nFr = Object.keys(s.friends).length;
     const nStars = Object.values(s.stars).reduce((a, b) => a + b, 0);
+    const nGold = goldCount();
     const cloudSVG = '<svg viewBox="0 0 120 60"><g fill="#fff"><circle cx="30" cy="38" r="20"/><circle cx="58" cy="26" r="26"/><circle cx="88" cy="38" r="20"/><rect x="30" y="38" width="58" height="20"/></g></svg>';
     let flowers = '';
     for (let i = 0; i < 9; i++) flowers += ART.flower(40 + i * 65, 52 + (i % 2) * 18, 9, ['#ffa8c5', '#fff3a3', '#d0bfff', '#a5d8ff'][i % 4]);
     const hill = `<svg class="hill" viewBox="0 0 600 110" preserveAspectRatio="none"><ellipse cx="300" cy="110" rx="300" ry="80" fill="#c3fae8"/><ellipse cx="300" cy="118" rx="270" ry="70" fill="#b2f2bb"/>${flowers}</svg>`;
-    app.innerHTML = `<div class="screen bg home"><div class="deco"><i class="cl c1">${cloudSVG}</i><i class="cl c2">${cloudSVG}</i><i class="cl c3">${cloudSVG}</i><b class="sp s1">✦</b><b class="sp s2">✦</b><b class="sp s3">♥</b><b class="sp s4">✦</b></div>
-      <div class="topbar" style="width:100%"><button class="iconbtn" data-a="settings" aria-label="설정">⚙️</button><div class="title"></div><button class="iconbtn" data-a="go" data-to="album" aria-label="앨범">🖼️</button>${carrotsHTML()}</div>
-      <div class="logo">토리의 반짝 달리기<small>⭐ ${nStars} / 36 · 🐾 친구 ${nFr} / 12</small></div>
+    const night = Runner.envNow().phase !== 'day';
+    const badges = [0, 1, 2, 3].map((i) => `<span class="bdg ${(s.boss || {})[i] ? 'on' : ''}">${ART.badge(i, !!(s.boss || {})[i])}</span>`).join('');
+    const journeyLabel = s.ended ? '🌈 여정 계속하기' : (Object.keys(s.stars).length ? '🗺️ 여정 이어 가기' : '🗺️ 여정 떠나기');
+    app.innerHTML = `<div class="screen bg home ${night ? 'night' : ''}"><div class="deco"><i class="cl c1">${cloudSVG}</i><i class="cl c2">${cloudSVG}</i><i class="cl c3">${cloudSVG}</i><b class="sp s1">✦</b><b class="sp s2">✦</b><b class="sp s3">♥</b><b class="sp s4">✦</b></div>
+      <div class="topbar" style="width:100%"><button class="iconbtn" data-a="settings" aria-label="설정">⚙️</button><div class="title"></div><button class="iconbtn rel" data-a="go" data-to="stamps" aria-label="칭찬 도장">🏅</button><button class="iconbtn" data-a="go" data-to="album" aria-label="앨범">🖼️</button>${carrotsHTML()}</div>
+      <div class="logo">토리의 반짝 달리기<small>⭐ ${nStars}/36 · 🐾 ${nFr}/12 · <span class="gc">🥕</span> 황금 ${nGold}/36</small></div>
+      <div class="badgeRow">${badges}</div>
       <div class="homeMain">
         <div class="stageTori">
           ${hill}
@@ -82,27 +89,76 @@ const UI = (() => {
           <div class="team r">${right.map(fsvg).join('')}</div>
         </div>
         <div class="homeSide">
-          <button class="btn pink big" data-a="go" data-to="map"><span class="em">🏃</span> 달리러 가기</button>
+          <button class="btn pink big" data-a="go" data-to="map">${journeyLabel}</button>
           <button class="btn lav rel" data-a="go" data-to="closet"><span class="em">👗</span> 토리 옷방${affordableNew() ? '<span class="dot"></span>' : ''}</button>
           <button class="btn mint" data-a="go" data-to="friends"><span class="em">🐾</span> 친구들</button>
           <button class="btn sky" data-a="go" data-to="studio"><span class="em">📸</span> 사진관</button>
           <button class="btn missionBtn" data-a="missions"><span class="em">🎯</span> 오늘의 미션 ${missionsText()}${missionClaimable() ? '<span class="dot"></span>' : ''}</button>
         </div>
       </div></div>`;
-    dailyBonus();
+    homeLife();
+    if (!s.seen.intro) { setTimeout(() => Story.play('intro', () => { s.seen.intro = true; Store.save(true); dailyBonus(); }), 300); }
+    else if (!birthday()) dailyBonus();
   }
-  ACT.poke = (d, el) => {
+  /* 가만히 두면 토리가 졸고, 친구들이 가끔 말해요 */
+  function homeLife() {
+    clearTimeout(idleT); clearInterval(chatT);
+    const sleepy = () => {
+      const w = $('.toriWrap'); if (!w || cur !== 'home') return;
+      w.innerHTML = lookSVG(S().look, 'stand', 'sleep'); w.classList.add('sleeping');
+      if (!$('.zzz')) $('.stageTori').insertAdjacentHTML('beforeend', '<div class="zzz"><b>z</b><b>z</b><b>Z</b></div>');
+    };
+    idleT = setTimeout(sleepy, 12000);
+    chatT = setInterval(() => {
+      if (cur !== 'home' || $('.modalBg') || $('.story')) return;
+      const fs = document.querySelectorAll('.tf'); if (!fs.length) return;
+      const f = fs[Math.floor(Math.random() * fs.length)];
+      say(f, pick(FRIEND_LINES));
+    }, 9000);
+  }
+  function say(el, text) {
+    document.querySelectorAll('.fbub').forEach((b) => b.remove());
+    const b = document.createElement('div'); b.className = 'fbub'; b.textContent = text;
+    el.appendChild(b); setTimeout(() => b.remove(), 2600);
+  }
+  ACT.friendTalk = (d, el) => {
+    const f = ART.FRIENDS.find((x) => x.id === d.id);
+    const line = pick(FRIEND_LINES);
+    say(el, line); Voice.say(line); Sfx.pop();
+    el.classList.remove('jump'); void el.offsetWidth; el.classList.add('jump');
+  };
+  ACT.poke = () => {
     const w = $('.toriWrap'); if (!w) return;
-    const ex = pick(['happy', 'wink', 'wow']);
+    const wasSleeping = w.classList.contains('sleeping');
+    w.classList.remove('sleeping'); const z = $('.zzz'); if (z) z.remove();
+    const ex = wasSleeping ? 'wow' : pick(['happy', 'wink', 'wow']);
     w.innerHTML = lookSVG(S().look, 'cheer', ex);
     w.classList.remove('cheer'); void w.offsetWidth; w.classList.add('cheer');
-    const line = pick(TORI_LINES);
-    const st = $('.stageTori'); st.querySelector('.bubble') && st.querySelector('.bubble').remove();
+    const line = wasSleeping ? '앗! 깜짝이야! 잠깐 졸았어 히히' : pick(TORI_LINES);
+    const st = $('.stageTori'); const ob = st.querySelector('.bubble'); if (ob) ob.remove();
     const b = document.createElement('div'); b.className = 'bubble'; b.textContent = line; st.appendChild(b);
     Voice.say(line); Sfx.pop();
     clearTimeout(ACT.poke.t);
     ACT.poke.t = setTimeout(() => { const w2 = $('.toriWrap'); if (w2) { w2.innerHTML = lookSVG(S().look); w2.classList.remove('cheer'); } const bb = $('.stageTori .bubble'); if (bb) bb.remove(); }, 2200);
+    homeLife();
   };
+  function goldCount() { return Object.values(S().gold || {}).reduce((a, g) => a + g.filter(Boolean).length, 0); }
+  function birthday() {
+    const s = S(), b = s.bday;
+    if (!b || !b.m) return false;
+    const d = new Date();
+    if (d.getMonth() + 1 !== +b.m || d.getDate() !== +b.d || s.bdayDone === d.getFullYear()) return false;
+    s.bdayDone = d.getFullYear(); s.owned.partyhat = true; Store.save(true);
+    setTimeout(() => {
+      modal(`<div class="tori">${lookSVG(Object.assign({}, s.look, { hat: 'partyhat' }), 'cheer', 'happy')}</div><h2>🎂 생일 축하해, ${esc(QS.josa(s.name || '재윤', '아', '야'))}!</h2>
+        <p>토리랑 친구들이 준비한 선물이에요!<br>🎉 생일 고깔 + ${carrotTag().replace('<img', '<img style="width:34px;vertical-align:middle"')} 100</p>
+        <div class="row"><button class="btn pink big" data-a="bdayTake">고마워! 💖</button></div>`);
+      confetti(innerWidth / 2, innerHeight * 0.3, 80); Sfx.fanfare();
+      Voice.say(`생일 축하해, ${QS.josa(s.name || '재윤', '아', '야')}! 사랑해!`);
+    }, 400);
+    return true;
+  }
+  ACT.bdayTake = () => { closeModal(); addCarrots(100); Sfx.buy(); S().look.hat = 'partyhat'; Store.save(true); go('home'); };
   function dailyBonus() {
     const s = S(), t = today();
     if (s.day === t) return;
@@ -114,20 +170,18 @@ const UI = (() => {
     const bonus = first ? 30 : 20 + 5 * Math.min(s.streak - 1, 6);
     Store.save(true);
     setTimeout(() => {
-      modal(`<div class="tori">${lookSVG(s.look, 'cheer', 'happy')}</div><h2>${first ? '만나서 반가워!' : '오늘도 왔구나!'}</h2>
-        <p>${first ? '나는 토리야. 같이 달리면서<br>당근을 모아 예쁜 옷을 사자!' : (s.streak > 1 ? `<b>${s.streak}일</b> 연속으로 왔어요! 최고!` : '오늘도 신나게 달려 볼까?')}</p>
+      modal(`<div class="tori">${lookSVG(s.look, 'cheer', 'happy')}</div><h2>${first ? '여정 준비물!' : '오늘도 왔구나!'}</h2>
+        <p>${first ? '친구들을 구하러 가기 전에<br>당근을 챙겨 가자!' : (s.streak > 1 ? `<b>${s.streak}일</b> 연속으로 왔어요! 최고!` : '오늘도 신나게 달려 볼까?')}</p>
         <p style="font-size:34px">${carrotTag('').replace('<img', '<img style="width:44px;vertical-align:middle"')} +${bonus}</p>
         <div class="row"><button class="btn pink big" data-a="takeBonus" data-n="${bonus}">받을래요!</button></div>`);
     }, 350);
   }
   ACT.takeBonus = (d) => {
-    closeModal(); addCarrots(+d.n); Sfx.buy(); confetti(innerWidth / 2, innerHeight * 0.4);
+    closeModal(); addCarrots(+d.n); Sfx.buy(); confetti(innerWidth / 2, innerHeight * 0.4); setTimeout(checkStamps, 1200);
     Voice.say(pick(['고마워!', '야호! 당근이다!', '신난다!']));
     const dot = !$('.homeSide .dot') && affordableNew();
     if (dot) { const b = document.querySelector('[data-to="closet"]'); if (b) b.insertAdjacentHTML('beforeend', '<span class="dot"></span>'); }
   };
-
-
   /* ---------- 오늘의 미션 ---------- */
   const MISSIONS = {
     play:  { icon: '🏃', text: (g) => `달리기 ${g}판 끝내기`, goal: 2, reward: 25 },
@@ -175,14 +229,71 @@ const UI = (() => {
     if (cur === 'home') { const b = $('.missionBtn'); if (b) { b.innerHTML = `<span class="em">🎯</span> 오늘의 미션 ${missionsText()}${missionClaimable() ? '<span class="dot"></span>' : ''}`; } }
   };
 
+
+  /* ---------- 칭찬 도장 ---------- */
+  const STAMPS = [
+    { id: 'run1', icon: '🏃', name: '첫 출발', desc: '첫 판 끝내기', ok: (s) => s.plays >= 1 && Object.keys(s.stars).length >= 1 },
+    { id: 'fr1', icon: '🐣', name: '첫 친구', desc: '친구 1명 구하기', ok: (s) => Object.keys(s.friends).length >= 1 },
+    { id: 'fr6', icon: '🐾', name: '친구 여섯', desc: '친구 6명 구하기', ok: (s) => Object.keys(s.friends).length >= 6 },
+    { id: 'fr12', icon: '💞', name: '모두 구했다', desc: '친구 12명 모두 구하기', ok: (s) => Object.keys(s.friends).length >= 12 },
+    { id: 'gold1', icon: '✨', name: '반짝 발견', desc: '황금 당근 1개 찾기', ok: () => goldCount() >= 1 },
+    { id: 'gold12', icon: '🌟', name: '황금 탐험가', desc: '황금 당근 12개 찾기', ok: () => goldCount() >= 12 },
+    { id: 'boss1', icon: '☁️', name: '구름 친구', desc: '심술 구름 1번 이기기', ok: (s) => Object.keys(s.boss || {}).length >= 1 },
+    { id: 'boss4', icon: '🌈', name: '여정 완성', desc: '심술 구름 4마리와 친구 되기', ok: (s) => Object.keys(s.boss || {}).length >= 4 },
+    { id: 'combo5', icon: '🔥', name: '불꽃 5연속', desc: '한 판에 5문제 연속 한 번에', ok: (s) => (s.stat.combo || 0) >= 5 },
+    { id: 'perfect', icon: '💯', name: '완벽한 판', desc: '8문제 모두 한 번에 맞히기', ok: (s) => (s.stat.perfect || 0) >= 1 },
+    { id: 'pole', icon: '👑', name: '깃대 꼭대기', desc: '깃대 꼭대기 잡기', ok: (s) => (s.stat.poleTop || 0) >= 1 },
+    { id: 'star5', icon: '⭐', name: '별 부자', desc: '별 3개 받은 판 5개', ok: (s) => Object.values(s.stars).filter((x) => x === 3).length >= 5 },
+    { id: 'cloth10', icon: '👗', name: '멋쟁이', desc: '옷 10개 갖기', ok: (s) => ART.ITEMS.filter((it) => s.owned[it.id]).length >= 10 },
+    { id: 'photo3', icon: '📸', name: '사진 작가', desc: '사진 3장 찍기', ok: (s) => (s.stat.photos || 0) >= 3 },
+    { id: 'day3', icon: '📅', name: '3일 연속', desc: '3일 연속 놀러 오기', ok: (s) => (s.streak || 0) >= 3 },
+    { id: 'block10', icon: '❓', name: '구름 콩콩', desc: '선물 구름 10번 콩!', ok: (s) => (s.stat.blocks || 0) >= 10 },
+  ];
+  const stat = () => (S().stat = S().stat || {});
+  function checkStamps(quiet) {
+    const s = S(); s.stamps = s.stamps || {}; stat();
+    const got = STAMPS.filter((t) => !s.stamps[t.id] && t.ok(s));
+    got.forEach((t) => { s.stamps[t.id] = today(); });
+    if (!got.length) return;
+    addCarrots(20 * got.length); Store.save(true);
+    if (quiet) return;
+    got.forEach((t, i) => setTimeout(() => {
+      const el = document.createElement('div'); el.className = 'stampPop';
+      el.innerHTML = `<div class="stamp on"><span>${t.icon}</span></div><div><b>칭찬 도장!</b><br>${t.name} <small>+20🥕</small></div>`;
+      document.body.appendChild(el); Sfx.star(); setTimeout(() => el.remove(), 3200);
+    }, 600 + i * 1400));
+  }
+  function stamps() {
+    const s = S(); s.stamps = s.stamps || {};
+    const n = Object.keys(s.stamps).length;
+    app.innerHTML = `<div class="screen bg"><div class="topbar">${back()}<div class="title">🏅 칭찬 도장 ${n} / ${STAMPS.length}</div>${carrotsHTML()}</div>
+      <p style="text-align:center;margin:0;font-size:21px;color:#9b8291">도장을 하나 받을 때마다 당근 20개!</p>
+      <div class="stampGrid">${STAMPS.map((t) => `<div class="stampCard ${s.stamps[t.id] ? 'got' : ''}"><div class="stamp ${s.stamps[t.id] ? 'on' : ''}"><span>${t.icon}</span>${s.stamps[t.id] ? '<em>참 잘했어요</em>' : ''}</div><b>${t.name}</b><small>${t.desc}</small></div>`).join('')}</div></div>`;
+  }
+
   /* ---------- 설정 ---------- */
   ACT.settings = () => {
-    const s = S().set;
+    const s = S().set, st = S();
     const row = (k, label) => `<div class="toggle">${label}<button class="sw ${s[k] ? 'on' : ''}" data-a="toggleSet" data-k="${k}"></button></div>`;
+    const b = st.bday || {};
+    const opts = (n, v) => `<option value="">-</option>` + Array.from({ length: n }, (_, i) => `<option ${+v === i + 1 ? 'selected' : ''}>${i + 1}</option>`).join('');
     modal(`<h2>설정</h2>${row('sfx', '🔔 효과음')}${row('voice', '🗣️ 토리 목소리')}${row('music', '🎵 배경 음악')}
+      <div class="toggle">🙂 이름<input id="setName" class="inp" maxlength="6" value="${esc(st.name || '재윤')}"></div>
+      <div class="toggle">🎂 생일<span><select id="bm" class="inp sm">${opts(12, b.m)}</select>월 <select id="bd" class="inp sm">${opts(31, b.d)}</select>일</span></div>
+      <div class="row"><button class="btn mint" data-a="saveSet">저장</button><button class="btn" data-a="replayIntro">📖 이야기 다시 보기</button></div>
       <div class="row"><button class="btn" data-a="resetAsk" style="font-size:20px">처음부터 다시 하기</button></div>
       <p style="font-size:16px;color:#b8a3b0">버전 ${APP_VERSION}</p>`, { x: true });
   };
+  ACT.saveSet = () => {
+    const st = S();
+    const nm = ($('#setName').value || '').trim().slice(0, 6);
+    if (nm) st.name = nm;
+    const m = $('#bm').value, d = $('#bd').value;
+    st.bday = m && d ? { m: +m, d: +d } : null;
+    Store.save(true); closeModal(); toast('저장했어요 ✓');
+    if (cur === 'home') go('home');
+  };
+  ACT.replayIntro = () => { closeModal(); Story.play('intro'); };
   ACT.toggleSet = (d, el) => {
     const s = S().set; s[d.k] = !s[d.k]; el.classList.toggle('on', s[d.k]); Store.save(true);
     if (d.k === 'music') { if (s.music) Sfx.startMusic(); else Sfx.stopMusic(); }
@@ -191,73 +302,127 @@ const UI = (() => {
   ACT.resetAsk = () => {
     const bg = modal(`<div class="big">⚠️</div><h2>정말 처음부터?</h2><p>당근, 옷, 친구, 별이 모두 사라져요.<br>엄마나 오빠에게 물어보고,<br>아래 버튼을 <b>3초 동안 꾹</b> 눌러요.</p>
       <div class="row"><button class="btn" data-a="closeModal">아니요</button><button class="btn pink holdBtn" id="holdReset"><span class="fill"></span><span class="lb">꾹 눌러서 지우기</span></button></div>`);
-    const hb = bg.querySelector('#holdReset'); let t = 0, st = 0, raf = 0;
+    const hb = bg.querySelector('#holdReset'); let st = 0, raf = 0;
     const tick = () => { const k = Math.min(1, (performance.now() - st) / 3000); hb.querySelector('.fill').style.width = k * 100 + '%'; if (k >= 1) { Store.reset(); closeModal(); go('home'); return; } raf = requestAnimationFrame(tick); };
     const down = (e) => { e.preventDefault(); st = performance.now(); cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); };
     const up = () => { cancelAnimationFrame(raf); hb.querySelector('.fill').style.width = '0%'; };
     hb.addEventListener('pointerdown', down); hb.addEventListener('pointerup', up); hb.addEventListener('pointerleave', up); hb.addEventListener('pointercancel', up);
   };
 
-  /* ---------- 지도 ---------- */
-  function isOpen(w, s) { return s === 0 || (S().stars[stageKey(w, s - 1)] || 0) > 0; }
-  function nextStage() {
-    for (let s = 0; s < 3; s++) for (let w = 0; w < W.length; w++) if (isOpen(w, s) && !S().stars[stageKey(w, s)]) return [w, s];
-    return null;
+  /* ---------- 여정 지도 ---------- */
+  function map(arg) {
+    const st = S();
+    app.innerHTML = `<div class="screen bg"><div class="topbar">${back()}<div class="title">🗺️ 토리의 여정</div>${carrotsHTML()}</div><div id="jwrap" class="jwrap"></div>
+      <div class="jhint">칸을 누르면 토리가 걸어가요 👆</div></div>`;
+    Journey.mount($('#jwrap'), arg && arg.at != null ? arg.at : st.pos);
+    const nx = Journey.nextIdx();
+    if (arg && arg.walkNext && nx !== Journey.at) setTimeout(() => Journey.walkTo(nx, () => { st.pos = nx; Store.save(); }), 700);
   }
-  function map() {
-    const st = S().stars, nx = nextStage();
-    let h = `<div class="screen bg"><div class="topbar">${back()}<div class="title">어디로 달려 볼까?</div>${carrotsHTML()}</div><div class="mapGrid">`;
-    W.forEach((wd, w) => {
-      const tot = [0, 1, 2].reduce((a, s) => a + (st[stageKey(w, s)] || 0), 0);
-      h += `<div class="world"><div class="wh" style="background:linear-gradient(${wd.color}cc, ${wd.color})"><div class="wi">${wd.icon}</div><div class="wn">${wd.name}</div><div class="ws">${wd.subj} · ⭐ ${tot}/9</div></div><div class="stages">`;
-      wd.stages.forEach((sd, s) => {
-        const k = stageKey(w, s), n = st[k] || 0, lock = !isOpen(w, s);
-        const fr = friendOf(w, s), got = S().friends[fr.id];
-        const isNext = nx && nx[0] === w && nx[1] === s;
-        h += `<button class="stagebtn ${lock ? 'locked' : ''} ${isNext ? 'next' : ''}" data-a="${lock ? 'lockedStage' : 'play'}" data-w="${w}" data-s="${s}">
-          <span class="num" style="background:${wd.color}">${lock ? '🔒' : s + 1}</span>
-          <span class="info"><div class="nm">${sd.name}</div><div class="stars">${[0, 1, 2].map((i) => `<span class="${i < n ? '' : 'off'}">★</span>`).join('')}</div></span>
-          <span class="fr">${got ? ART.friend(fr.id, (S().friends[fr.id] || {}).top) : ART.friendShadow(fr.id)}</span></button>`;
-      });
-      h += `</div></div>`;
-    });
-    app.innerHTML = h + `</div></div>`;
+  ACT.node = (d) => {
+    const i = +d.i, n = Journey.NODES[i];
+    if (Journey.walking) return;
+    if (!Journey.open(i)) { toast('🔒 앞 칸을 먼저 깨면 열려요!'); Voice.say('앞 칸을 먼저 깨면 열려요!'); return; }
+    Journey.walkTo(i, () => { S().pos = i; Store.save(); stageCard(n); });
+  };
+  function stageCard(n) {
+    const st = S(), wd = W[n.w];
+    if (n.s === 'b') {
+      const won = !!(st.boss || {})[n.w];
+      modal(`<div style="width:220px;margin:0 auto">${ART.boss(n.w, won ? 'happy' : 'angry')}</div><h2>${wd.icon} ${ART.BOSSES[n.w].name}</h2>
+        <p>${won ? '이제 착한 친구가 됐어요! 다시 겨뤄 볼까요?' : '문제를 맞힐 때마다 당근을 던져요!<br>한 번에 맞히면 왕 당근! 🥕'}</p>
+        <div class="row"><button class="btn pink big" data-a="play" data-w="${n.w}" data-s="b">${won ? '다시 겨루기 ▶' : '보스와 겨루기! ▶'}</button></div>`, { x: true, cls: 'card2' });
+      return;
+    }
+    const k = stageKey(n.w, n.s), stars = st.stars[k] || 0, gold = (st.gold || {})[k] || [];
+    const fr = friendOf(n.w, n.s), got = st.friends[fr.id];
+    modal(`<div class="chapterTag" style="background:${wd.color}">${wd.icon} ${wd.name} ${n.s + 1}</div><h2>${wd.stages[n.s].name}</h2>
+      <div class="cardRow"><div class="cardF">${got ? ART.friend(fr.id, got.top) : ART.friendShadow(fr.id)}<small>${got ? `${fr.name} 구함 ✓` : '이 친구를 구하러!'}</small></div>
+      <div class="cardInfo"><div class="bigStars small">${[0, 1, 2].map((i) => `<span class="${i < stars ? '' : 'off'}">★</span>`).join('')}</div>
+      <div class="goldRow">${[0, 1, 2].map((i) => `<i class="${gold[i] ? 'on' : ''}"></i>`).join('')}<span>숨은 황금 당근</span></div></div></div>
+      <div class="row"><button class="btn pink big" data-a="play" data-w="${n.w}" data-s="${n.s}">출발! ▶</button></div>`, { x: true, cls: 'card2' });
+    Voice.say(got ? `${wd.stages[n.s].name}! 다시 달려 볼까?` : `${QS.josa(fr.kind, '을', '를')} 구하러 가자!`);
   }
-  ACT.lockedStage = (d) => { toast(`앞 판을 먼저 깨면 열려요! 🔓`); Voice.say('앞 판을 먼저 깨면 열려요!'); };
-  ACT.play = (d) => go('game', { w: +d.w, s: +d.s });
+  ACT.play = (d) => {
+    const w = +d.w, s = d.s === 'b' ? 'b' : +d.s;
+    closeModal();
+    const st = S();
+    const ch = 'ch' + w;
+    const startIt = () => {
+      if (s === 'b' && !(st.boss || {})[w] && !st.seen['boss' + w]) { st.seen['boss' + w] = true; Store.save(); Story.play('boss' + w, () => go('game', { w, s })); }
+      else go('game', { w, s });
+    };
+    if (!st.seen[ch]) { st.seen[ch] = true; Store.save(); Story.play(ch, startIt); }
+    else startIt();
+  };
 
-  /* ---------- 게임 ---------- */
+  /* ---------- 달리기 ---------- */
   function game({ w, s }) {
     const st = S();
-    const qs = QS.makeSet(w, s, 8, st.recent);
-    const fr = friendOf(w, s);
-    G = { w, s, qs, qi: -1, tries: 0, res: [], combo: 0, best: 0, qCarrots: 0, field: 0, rescue: st.friends[fr.id] ? null : fr.id, friend: fr, done: false };
+    const boss = s === 'b';
+    const qs = boss ? QS.makeBossSet(w, 10, st.recent) : QS.makeSet(w, s, 8, st.recent);
+    const fr = boss ? null : friendOf(w, s);
+    G = { w, s, boss, qs, qi: -1, tries: 0, res: [], combo: 0, best: 0, qCarrots: 0, field: 0, poleBonus: 0, gold: [false, false, false],
+      rescue: boss ? null : (st.friends[fr.id] ? null : fr.id), friend: fr, done: false };
+    const prog = boss
+      ? `<div class="prog boss"><div class="hpbar"><i style="width:100%"></i></div><span class="bossName">☁️ ${ART.BOSSES[w].name}</span></div>`
+      : `<div class="prog"><div class="bar" style="width:0%"></div>${qs.map((_, i) => `<span class="pin" style="left:${((i + 1) / 9) * 100}%"></span>`).join('')}<span class="goal">🏁</span><span class="me" style="left:0%">${lookSVG(st.look, 'run0', 'happy')}</span></div>`;
     app.innerHTML = `<div class="screen" id="gameScr">
-      <div class="hud"><button class="iconbtn" data-a="pause" aria-label="멈춤">⏸️</button>
-        <div class="prog"><div class="bar" style="width:0%"></div>${qs.map((_, i) => `<span class="pin" style="left:${((i + 1) / 9) * 100}%"></span>`).join('')}<span class="goal">${G.rescue ? '🫧' : '🎁'}</span><span class="me" style="left:0%">${lookSVG(st.look, 'run0', 'happy')}</span></div>
-        ${carrotsHTML()}</div>
+      <div class="hud"><button class="iconbtn" data-a="pause" aria-label="멈춤">⏸️</button>${prog}
+        ${boss ? '' : `<div class="goldHud">${[0, 1, 2].map(() => '<i></i>').join('')}</div>`}${carrotsHTML()}</div>
       <div id="qbox"></div></div>`;
     Runner.start({
+      mode: boss ? 'boss' : 'stage', bossIdx: w, hp: 8,
       world: W[w].id, count: qs.length, seed: Math.floor(Math.random() * 6), look: st.look,
       team: st.team.filter((id) => st.friends[id]).slice(0, 3).map((id) => ({ id, top: st.friends[id].top || '' })),
       rescue: G.rescue, tapHint: !st.seen.tap,
-      onAsk, onCarrot, onPass, onFinish: finish, onHint,
+      onAsk, onCarrot, onPass, onFinish: finish, onHint, onGold, onPole, onBlock, onBossHp,
     });
     st.plays++; Store.save();
-    Voice.say(pick(['출발!', '달려 보자!', '준비, 출발!']));
+    Voice.say(boss ? '심술 구름이다! 문제를 맞혀서 당근을 던지자!' : pick(['출발!', '달려 보자!', '준비, 출발!', '친구야, 기다려! 금방 갈게!']));
   }
-  function onHint(show) {
+  function hint(html, ms = 4000) {
     const g = $('#gameScr'); if (!g) return;
     const old = $('.tapHint'); if (old) old.remove();
-    clearTimeout(onHint.t);
-    if (show) { g.insertAdjacentHTML('beforeend', '<div class="tapHint">👆 화면을 톡! 누르면 점프해요</div>'); Voice.say('화면을 톡 누르면 점프해서 당근을 먹을 수 있어!'); onHint.t = setTimeout(() => { const h = $('.tapHint'); if (h) h.remove(); }, 7000); }
-    else if (show === false) { S().seen.tap = true; Store.save(); }
+    clearTimeout(hint.t);
+    if (!html) return;
+    g.insertAdjacentHTML('beforeend', `<div class="tapHint">${html}</div>`);
+    hint.t = setTimeout(() => { const h = $('.tapHint'); if (h) h.remove(); }, ms);
+  }
+  function onHint(kind) {
+    if (kind === true) { hint('👆 화면을 톡! 누르면 점프 · <b>꾹</b> 누르면 더 높이!', 7000); Voice.say('화면을 톡 누르면 점프! 꾹 누르면 더 높이 뛰어!'); }
+    else if (kind === false) { S().seen.tap = true; Store.save(); hint(null); }
+    else if (kind === 'pole') { hint('🏁 깃발 앞에서 <b>꾹</b> 눌러 높이 점프! 높을수록 보너스', 4500); Voice.say('깃발이다! 꾹 눌러서 높이 뛰어!'); }
+    else hint(null);
   }
   function onCarrot(n, x, y, kind) {
     if (!G) return;
     G.field += n; addCarrots(n);
-    mission('field', n); if (kind === 's' || kind === 'g') mission('shine', 1);
+    mission('field', n); if (kind === 's' || kind === 'big') mission('shine', 1);
     flyText('+' + n, x, y - 30, n >= 5 ? '#f59f00' : '#ff922b');
+  }
+  function onGold(i, x, y) {
+    if (!G) return;
+    G.gold[i] = true;
+    const el = document.querySelectorAll('.goldHud i')[i]; if (el) el.classList.add('on');
+    banner('✨ 숨은 황금 당근! ✨'); flyText('황금 당근!', x - 40, y - 50, '#f59f00');
+    Voice.say(pick(['우와! 황금 당근이다!', '숨은 황금 당근 찾았다!', '반짝반짝 황금 당근!']));
+  }
+  function onPole(tier) {
+    const B = [0, 10, 20, 30, 50][tier];
+    if (tier === 4) stat().poleTop = (stat().poleTop || 0) + 1;
+    G.poleBonus = B; addCarrots(B);
+    banner(['', '🏁 도착!', '🏁 좋아!', '🌟 높이 점프!', '👑 꼭대기!'][tier] + ` +${B}`);
+    Voice.say(['', '도착!', '좋아!', '와, 높다!', '꼭대기다! 최고야!'][tier]);
+  }
+  function onBlock(gives) {
+    stat().blocks = (stat().blocks || 0) + 1;
+    if (gives === 'star') { toast('🌈 무지개 별! 당근이 쏙쏙 끌려와요'); Voice.say('무지개 별이다! 반짝반짝!'); }
+    else if (gives === 'balloon') { toast('🎈 풍선 타고 하늘 당근 냠냠!'); Voice.say('풍선 타고 둥실둥실!'); }
+    else if (gives === 'carrots') Voice.say('당근이 와르르!');
+  }
+  function onBossHp(hp, max) {
+    const b = $('.hpbar i'); if (b) b.style.width = (hp / max) * 100 + '%';
+    if (hp <= 0) { const q = $('#qbox'); if (q) q.innerHTML = ''; Voice.say(`${ART.BOSSES[G.w].name}이 착해졌어!`); }
   }
   function onPass(qi) { updateProg(qi + 1); }
   function updateProg(n) {
@@ -267,6 +432,8 @@ const UI = (() => {
   }
   function onAsk(qi) {
     if (!G) return;
+    if (qi < 0) qi = G.qi + 1;                 // 보스판: 다음 문제
+    if (qi >= G.qs.length) { G.qs.push(...QS.makeBossSet(G.w, 4)); }
     G.qi = qi; G.tries = 0;
     const q = G.qs[qi];
     const long = q.choices.some((c) => c.length > 7);
@@ -282,6 +449,16 @@ const UI = (() => {
     Voice.say(q.speak).then(() => { if (q.say && !q.sayAfter && G && G.qs[G.qi] === q) Voice.say(q.say[0], q.say[1], { queue: true }); });
   }
   ACT.speakQ = () => speakQ();
+  function closeQ(kind) {
+    const p = $('#qp'); if (p) p.classList.add('hide');
+    setTimeout(() => {
+      if ($('#qbox')) $('#qbox').innerHTML = '';
+      if (!G) return;
+      G.answered = false;
+      if (G.boss) Runner.bossAttack(kind === 'first' ? 2 : 1);
+      else Runner.answered(kind);
+    }, 280);
+  }
   ACT.choose = (d, el) => {
     if (!G || G.answered) return;
     const q = G.qs[G.qi];
@@ -299,19 +476,20 @@ const UI = (() => {
       flyText(`+${gain} 🥕`, r.left + r.width / 2 - 30, r.top - 10);
       if (first) {
         G.combo++; G.best = Math.max(G.best, G.combo);
-        if (G.combo >= 3 && G.combo % 3 === 0) { banner(`🔥 ${G.combo}연속 정답!`); addCarrots(3); G.qCarrots += 3; Sfx.star(); }
+        if (G.combo >= 3 && G.combo % 3 === 0) {
+          addCarrots(3); G.qCarrots += 3;
+          if (!G.boss) { banner(`🔥 ${G.combo}연속! 무지개 별!`); setTimeout(() => Runner.power('star'), 400); }
+          else banner(`🔥 ${G.combo}연속 정답!`);
+        }
       } else G.combo = 0;
       const pin = document.querySelectorAll('.prog .pin')[G.qi]; if (pin) pin.classList.add(first ? 'ok' : 'meh');
       Voice.say(q.sayAfter && q.say ? q.say[0] : pick(first ? ['딩동댕!', '맞았어!', '최고야!', '멋져!', '우와, 천재다!', '정답!'] : ['맞았어!', '잘했어!', '좋아!']), q.sayAfter && q.say ? q.say[1] : 'ko');
-      setTimeout(() => {
-        const p = $('#qp'); if (p) p.classList.add('hide');
-        setTimeout(() => { if ($('#qbox')) $('#qbox').innerHTML = ''; G && (G.answered = false); Runner.answered(first ? 'first' : 'second'); }, 280);
-      }, 750);
+      setTimeout(() => closeQ(first ? 'first' : 'second'), 750);
       return;
     }
-    // 틀림
     G.tries++; G.combo = 0;
     el.classList.add('no'); Sfx.wrong(); Runner.react('oops', 1.2);
+    if (G.boss) Runner.bossTaunt();
     const left = q.choices.length - G.tries;
     if (G.tries >= 2 || left <= 1) {
       G.answered = true;
@@ -321,13 +499,10 @@ const UI = (() => {
       $('#qex').innerHTML = `<div class="explain">💡 ${esc(q.explain || ('정답은 ' + q.answer))}</div><button class="btn mint qgo" data-a="afterMiss">알겠어! ▶</button>`;
       Voice.say('정답은 이거야. ' + (q.explain || '')).then(() => { if (q.say && G && G.qs[G.qi] === q) Voice.say(q.say[0], q.say[1], { queue: true }); });
     } else {
-      Voice.say(pick(['괜찮아, 한 번 더!', '아깝다! 다시 해 볼까?', '음, 다른 걸 골라 볼까?']));
+      Voice.say(G.boss ? pick(['흥! 틀렸지롱~ 다시 해 봐!', '후우~ 바람이다! 한 번 더!']) : pick(['괜찮아, 한 번 더!', '아깝다! 다시 해 볼까?', '음, 다른 걸 골라 볼까?']));
     }
   };
-  ACT.afterMiss = () => {
-    const p = $('#qp'); if (p) p.classList.add('hide');
-    setTimeout(() => { if ($('#qbox')) $('#qbox').innerHTML = ''; if (G) G.answered = false; Runner.answered('miss'); }, 250);
-  };
+  ACT.afterMiss = () => closeQ('miss');
   function pauseGame() {
     if (!G || G.done) return;
     Runner.setPaused(true);
@@ -337,69 +512,102 @@ const UI = (() => {
   ACT.resume = () => { closeModal(); Runner.setPaused(false); };
   ACT.quitGame = () => { G = null; Runner.stop(); go('map'); };
 
-  function finish() {
+  /* ---------- 판 끝 ---------- */
+  const SPECIAL_POOL = () => ART.ITEMS.filter((it) => it.special && !it.gold && !it.ending);
+  function finish(res) {
     if (!G || G.done) return;
     G.done = true;
-    const st = S(), key = stageKey(G.w, G.s);
+    const st = S();
+    st.gold = st.gold || {}; st.boss = st.boss || {}; st.worldGift = st.worldGift || {};
+    const giftQ = [];
+    const pickGift = () => { const left = SPECIAL_POOL().filter((it) => !st.owned[it.id] && !giftQ.includes(it)); return left.length ? left[Math.floor(Math.random() * left.length)] : { bonus: 40 }; };
+    const n = G.boss ? G.res.filter(Boolean).length : G.qs.length;
     const firsts = G.res.filter((r) => r && r.first).length;
-    const n = G.qs.length;
+    mission('play', 1); mission('first', firsts);
+    stat().combo = Math.max(stat().combo || 0, G.best);
+    if (!G.boss && firsts === n) stat().perfect = (stat().perfect || 0) + 1;
+    st.correct += firsts;
+    st.recent = [...G.qs.slice(0, G.qi + 1).map((q) => q.key), ...st.recent].slice(0, 120);
+    if (G.boss) return bossFinish(firsts, n, giftQ, pickGift);
+    const key = stageKey(G.w, G.s);
     const stars = firsts >= n - 1 ? 3 : firsts >= n - 3 ? 2 : 1;
     const prev = st.stars[key] || 0;
     st.stars[key] = Math.max(prev, stars);
-    st.correct += firsts;
-    st.recent = [...G.qs.map((q) => q.key), ...st.recent].slice(0, 120);
-    const clear = 10, starB = stars * 5;
-    let treasure = 0, newFriend = null, gift = null;
+    if (stars === 3) mission('star3', 1);
+    // 황금 당근
+    const beforeGold = goldCount();
+    const g0 = st.gold[key] || [false, false, false];
+    const newGold = res.gold.filter((x, i) => x && !g0[i]).length;
+    st.gold[key] = g0.map((x, i) => x || res.gold[i]);
+    const allGold = st.gold[key].every(Boolean) && !g0.every(Boolean);
+    const afterGold = goldCount();
+    ART.ITEMS.filter((it) => it.gold && beforeGold < it.gold && afterGold >= it.gold && !st.owned[it.id]).forEach((it) => giftQ.push(it));
+    const clear = 10, starB = stars * 5, goldB = newGold * 10 + (allGold ? 20 : 0);
+    let treasure = 0, newFriend = null;
     if (G.rescue) {
       newFriend = G.friend;
       st.friends[newFriend.id] = { top: '' };
       if (st.team.length < 3) st.team.push(newFriend.id);
     } else treasure = 15;
-    const giftQ = [];
-    const pickGift = () => { const left = ART.ITEMS.filter((it) => it.special && !st.owned[it.id] && !giftQ.includes(it)); return left.length ? left[Math.floor(Math.random() * left.length)] : { bonus: 40 }; };
     if (stars === 3 && prev < 3) giftQ.push(pickGift());
-    st.worldGift = st.worldGift || {};
-    if (!st.worldGift[G.w] && [0, 1, 2].every((i) => st.stars[stageKey(G.w, i)])) { st.worldGift[G.w] = true; giftQ.push(pickGift()); G.worldDone = true; }
-    G.giftQ = giftQ; gift = giftQ[0] || null;
-    mission('play', 1); mission('first', firsts); if (stars === 3) mission('star3', 1);
-    const bonus = clear + starB + treasure;
+    G.giftQ = giftQ;
+    const bonus = clear + starB + treasure + goldB;
     addCarrots(bonus);
     Store.save(true);
-    const total = G.qCarrots + G.field + bonus;
+    const total = G.qCarrots + G.field + bonus + G.poleBonus;
     const wrongs = G.res.filter((r) => r && !r.first);
-    const W0 = W[G.w];
-    const hasNext = G.s < 2 || G.w < W.length - 1;
     Sfx.fanfare();
     confetti(innerWidth / 2, innerHeight * 0.3, 60);
+    const goldNow = st.gold[key];
     modal(`<div class="result">
       <h2>도착! ${stars === 3 ? '완벽해요 🎉' : stars === 2 ? '잘했어요 🎉' : '해냈어요 🎉'}</h2>
       <div class="bigStars">${[0, 1, 2].map((i) => `<span class="${i < stars ? '' : 'off'}">★</span>`).join('')}</div>
       <p>한 번에 맞힌 문제 <b>${firsts}</b> / ${n}${G.best >= 3 ? ` · 🔥 최고 ${G.best}연속` : ''}</p>
+      <div class="goldRow big">${[0, 1, 2].map((i) => `<i class="${goldNow[i] ? 'on' : ''} ${res.gold[i] && !g0[i] ? 'new' : ''}"></i>`).join('')}<span>${allGold ? '황금 당근 다 모았다! +20' : newGold ? `황금 당근 ${newGold}개 찾았어요!` : '숨은 황금 당근을 찾아봐요'}</span></div>
       ${newFriend ? `<div class="topRow"><div class="chip on" style="font-size:24px">${ART.friend(newFriend.id)} 새 친구 <b>${newFriend.name}</b>(${newFriend.kind})${QS.josa(newFriend.kind, '을', '를').slice(newFriend.kind.length)} 구했어요!</div></div>` : ''}
       <div class="gain">${carrotTag()}<b>+${total}</b></div>
-      <div class="gainParts"><span>🧠 문제 ${G.qCarrots}</span><span>🥕 길 ${G.field}</span><span>🏁 도착 ${clear}</span><span>⭐ 별 ${starB}</span>${treasure ? `<span>🎁 보물 ${treasure}</span>` : ''}</div>
-      ${gift ? `<div class="row"><button class="btn lav big" data-a="openGift">🎁 선물 상자 열기!${G.giftQ.length > 1 ? ` (${G.giftQ.length}개)` : ''}</button></div>` : ''}
-      ${G.worldDone ? `<p style="font-size:21px;color:#845ef7">🌟 ${W0.name}의 판을 모두 깼어요! 선물이 하나 더!</p>` : ''}
-      ${wrongs.length ? `<details class="wrongs"><summary style="font-size:22px">📒 다시 볼 문제 ${wrongs.length}개</summary>${wrongs.map((r) => `<div>${esc(r.q.text)} ${r.q.visual && r.q.emoji === false && /bigemo/.test(r.q.visual) ? r.q.visual.replace(/<[^>]+>/g, '') : ''} → 정답 <b>${esc(r.q.answer)}</b></div>`).join('')}</details>` : ''}
-      <div class="row" ${gift ? 'style="opacity:.0;pointer-events:none" id="afterGift"' : ''}>
+      <div class="gainParts"><span>🧠 문제 ${G.qCarrots}</span><span>🥕 길 ${G.field}</span><span>🏁 깃발 ${G.poleBonus}</span><span>⭐ 별 ${starB + clear}</span>${goldB ? `<span>✨ 황금 ${goldB}</span>` : ''}${treasure ? `<span>🎁 보물 ${treasure}</span>` : ''}</div>
+      ${giftQ.length ? `<div class="row"><button class="btn lav big" data-a="openGift">🎁 선물 상자 열기!${giftQ.length > 1 ? ` (${giftQ.length}개)` : ''}</button></div>` : ''}
+      ${wrongs.length ? `<details class="wrongs"><summary style="font-size:22px">📒 다시 볼 문제 ${wrongs.length}개</summary>${wrongs.map((r) => `<div>${esc(r.q.text)} → 정답 <b>${esc(r.q.answer)}</b></div>`).join('')}</details>` : ''}
+      <div class="row" ${giftQ.length ? 'style="opacity:0;pointer-events:none" id="afterGift"' : ''}>
         <button class="btn" data-a="replay">🔁 다시</button>
-        ${hasNext ? '<button class="btn pink" data-a="nextStage">▶ 다음 판</button>' : ''}
-        <button class="btn sky" data-a="go" data-to="map">🗺️ 지도</button>
-        <button class="btn lav" data-a="go" data-to="closet">👗 옷방</button></div>
+        <button class="btn pink big" data-a="toMap">🗺️ 다음으로 ▶</button></div>
     </div>`);
+    setTimeout(() => checkStamps(), 1800);
     Voice.say(stars === 3 ? '와! 별 세 개야! 정말 대단해!' : stars === 2 ? '별 두 개! 잘했어!' : '끝까지 왔어! 멋져!').then(() => {
       if (newFriend) Voice.say(`새 친구 ${QS.josa(newFriend.name, '을', '를')} 구했어!`, 'ko', { queue: true });
     });
     G.result = { w: G.w, s: G.s };
   }
+  function bossFinish(firsts, n, giftQ, pickGift) {
+    const st = S(), w = G.w;
+    const first = !st.boss[w];
+    st.boss[w] = true;
+    if (first) giftQ.push(pickGift());
+    const ending = first && w === W.length - 1;
+    if (ending && !st.owned.rainbowcrown) giftQ.push(ART.ITEMS.find((it) => it.id === 'rainbowcrown'));
+    G.giftQ = giftQ;
+    const bonus = first ? 50 : 20;
+    addCarrots(bonus); Store.save(true);
+    const total = G.qCarrots + G.field + bonus;
+    const showResult = () => {
+      Sfx.fanfare(); confetti(innerWidth / 2, innerHeight * 0.3, 70);
+      modal(`<div class="result"><div style="display:flex;justify-content:center;align-items:center;gap:10px"><div style="width:180px">${ART.boss(w, 'happy')}</div><div style="width:110px">${ART.badge(w)}</div></div>
+        <h2>${ART.BOSSES[w].name}이 친구가 됐어요!</h2>
+        <p>${first ? `${W[w].name}의 배지를 받았어요! ${w < W.length - 1 ? '다음 섬으로 가는 다리가 생겼어요 🌉' : ''}` : '다시 이겼어요! 대단해요!'}</p>
+        <div class="gain">${carrotTag()}<b>+${total}</b></div>
+        <div class="gainParts"><span>🧠 문제 ${G.qCarrots}</span><span>🥕 길 ${G.field}</span><span>👑 보스 ${bonus}</span></div>
+        ${giftQ.length ? `<div class="row"><button class="btn lav big" data-a="openGift">🎁 선물 상자 열기!${giftQ.length > 1 ? ` (${giftQ.length}개)` : ''}</button></div>` : ''}
+        <div class="row" ${giftQ.length ? 'style="opacity:0;pointer-events:none" id="afterGift"' : ''}><button class="btn pink big" data-a="toMap">🗺️ ${w < W.length - 1 ? '다음 섬으로 ▶' : '지도로 ▶'}</button></div></div>`);
+      Voice.say(first ? '배지를 받았어! 다음 섬으로 가자!' : '또 이겼다!');
+      setTimeout(() => checkStamps(), 1800);
+    };
+    G.result = { w, s: 'b' };
+    if (first) Story.play('win' + w, () => { if (ending) { st.ended = true; Store.save(true); Story.play('ending', showResult); } else showResult(); });
+    else showResult();
+  }
   ACT.replay = () => { const r = G && G.result; if (r) go('game', { w: r.w, s: r.s }); };
-  ACT.nextStage = () => {
-    const r = G && G.result; if (!r) return;
-    let w = r.w, s = r.s + 1;
-    if (s > 2) { s = 0; w++; }
-    if (w >= W.length) { go('map'); return; }
-    go('game', { w, s });
-  };
+  ACT.toMap = () => { G = null; go('map', { walkNext: true }); };
   ACT.openGift = () => {
     const nx = G && G.giftQ && G.giftQ.shift(); if (!nx) return;
     const it = nx.id ? nx : null; const d = { bonus: nx.bonus || 0 };
@@ -415,7 +623,7 @@ const UI = (() => {
       if (it) {
         st.owned[it.id] = true; st.gifts.push(it.id); Store.save(true);
         const lk = Object.assign({}, st.look, { [it.cat]: it.id });
-        inner = `<div class="reveal">${lookSVG(lk, 'cheer', 'wow')}</div><h2>${it.name}!</h2><p>특별한 옷을 받았어요 ✨</p>
+        inner = `<div class="reveal">${lookSVG(lk, 'cheer', 'wow')}</div><h2>${it.name}!</h2><p>${it.gold ? `황금 당근 ${it.gold}개를 모아서 받은 옷이에요 ✨` : it.ending ? '여정을 끝낸 친구만 쓰는 왕관이에요 🌈' : '특별한 옷을 받았어요 ✨'}</p>
           <div class="row"><button class="btn pink big" data-a="wearGift" data-id="${it.id}">지금 입을래요!</button><button class="btn" data-a="giftDone">나중에</button></div>`;
         Voice.say(`와! ${QS.josa(it.name, '을', '를')} 받았어!`);
       } else {
@@ -430,7 +638,7 @@ const UI = (() => {
     const it = ART.ITEMS.find((x) => x.id === d.id);
     S().look[it.cat] = it.id; Store.save(true);
     ACT.giftDone();
-    toast(`${QS.josa(it.name, '을', '를')} 입었어요! 다음 판부터 입고 달려요 ✨`);
+    toast(`${QS.josa(it.name, '을', '를')} 입었어요! ✨`);
   };
   ACT.giftDone = () => {
     const g = $('#giftM'); if (g) g.remove();
@@ -440,7 +648,6 @@ const UI = (() => {
     const r = $('#afterGift'); if (r) { r.style.opacity = '1'; r.style.pointerEvents = ''; }
     if (btn) btn.remove();
   };
-
   /* ---------- 옷방 ---------- */
   let CL = { cat: 'hat', tryOn: null };
   const THUMB_VB = { hat: '22 -6 156 156', cloth: '34 128 132 132', face: '40 62 120 120', shoes: '36 168 128 92', back: '0 20 200 240', fur: '0 0 200 260' };
@@ -511,7 +718,7 @@ const UI = (() => {
     bg.style.alignItems = 'end'; bg.style.background = 'rgba(80,50,70,.12)';
     bg.querySelector('.modal').style.marginBottom = '3vh';
     ACT.buyYes = () => {
-      s.carrots -= price; onBuy(); Store.save(true); mission('dress', 1);
+      s.carrots -= price; onBuy(); Store.save(true); mission('dress', 1); setTimeout(checkStamps, 900);
       CL.tryOn = null; closeModal(); closet(); mirrorCheer(); Sfx.buy();
       confetti(innerWidth * 0.2, innerHeight * 0.45, 40);
       Voice.say(pick(['와! 고마워!', '정말 예쁘다!', '마음에 쏙 들어!']));
@@ -665,7 +872,7 @@ const UI = (() => {
       const cvs = document.createElement('canvas'); cvs.width = 1000; cvs.height = 600;
       const cx = cvs.getContext('2d'); cx.drawImage(img, 0, 0);
       const url = cvs.toDataURL('image/jpeg', 0.86);
-      await Photos.add(url); mission('photo', 1);
+      await Photos.add(url); mission('photo', 1); stat().photos = (stat().photos || 0) + 1; checkStamps();
       toast('📸 앨범에 저장했어요!');
       Voice.say(pick(['찰칵! 예쁘게 나왔다!', '와, 멋진 사진이야!', '하나 더 찍을까?']));
     };
@@ -689,7 +896,7 @@ const UI = (() => {
     };
   }
 
-  const SCREENS = { home, map, game, closet: () => { CL = { cat: CL.cat || 'hat', tryOn: null }; closet(); }, friends, studio: () => { ST = ST ? Object.assign(ST, { pieces: ST.pieces }) : null; studio(); }, album };
+  const SCREENS = { home, map, game, stamps, closet: () => { CL = { cat: CL.cat || 'hat', tryOn: null }; closet(); }, friends, studio: () => { ST = ST ? Object.assign(ST, { pieces: ST.pieces }) : null; studio(); }, album };
 
   /* ---------- 시작 ---------- */
   function boot() {

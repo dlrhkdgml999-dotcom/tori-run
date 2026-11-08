@@ -353,6 +353,21 @@ const QS = (() => {
     return out;
   }
 
-  return { WORLDS, makeSet, M, K, E, josa, hasBatchim, clockSVG, native, sino };
+  /* 보스판: 그 월드 세 판의 문제를 섞어서 */
+  function makeBossSet(w, n = 10, avoid = []) {
+    const all = [];
+    WORLDS[w].stages.forEach((st) => st.gens.forEach((g) => { if (!all.includes(g)) all.push(g); }));
+    const out = [], keys = new Set();
+    let guard = 0, order = [];
+    while (out.length < n && guard++ < 500) {
+      if (!order.length) order = shuffle(all);
+      const g = order.pop(), q = g();
+      if (keys.has(q.key) || (guard < 250 && avoid.includes(q.key))) continue;
+      keys.add(q.key); q.gen = g.name || ''; out.push(q);
+    }
+    return out;
+  }
+
+  return { WORLDS, makeSet, makeBossSet, M, K, E, josa, hasBatchim, clockSVG, native, sino };
 })();
 if (typeof module !== 'undefined') module.exports = QS;
