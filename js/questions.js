@@ -56,6 +56,11 @@ const QS = (() => {
     s += `<line x1="100" y1="100" x2="${(100 + Math.sin(ma * Math.PI / 180) * 66).toFixed(1)}" y2="${(100 - Math.cos(ma * Math.PI / 180) * 66).toFixed(1)}" stroke="#4c6ef5" stroke-width="6" stroke-linecap="round"/>`;
     return s + '<circle cx="100" cy="100" r="7" fill="#6e5363"/></svg>';
   }
+  // 숫자 읽기(일·이·삼…) 받침으로 조사 고르기
+  const numB = (n) => (n % 10 === 0 ? n !== 0 : [1, 3, 6, 7, 8].includes(n % 10));
+  const numJosa = (n) => (numB(n) ? '과' : '와');
+  const nObj = (n) => n + (numB(n) ? '을' : '를');
+  const nIs = (n) => n + (numB(n) ? '이에요' : '예요');
   const tAns = (h, m) => h + '시' + (m ? ' 30분' : '');
 
   const M = {
@@ -63,19 +68,19 @@ const QS = (() => {
       const t = R(5, 9), o = R(1, 9), n = t * 10 + o;
       const wr = [o * 10 + t, n + 10, n - 10, n + 1, n - 1];
       return mk({ key: 'mb' + n, subj: 'm', text: `10개씩 묶음 ${t}개와 낱개 ${o}개는?`, visual: rods(t, o), answer: n, wrong: wr.filter((x) => x > 0 && x < 100 && x !== n), big: true,
-        explain: `10개씩 묶음 ${t}개는 ${t * 10}, 낱개 ${o}개를 더하면 ${n}이에요.` });
+        explain: `10개씩 묶음 ${t}개는 ${t * 10}, 낱개 ${o}개를 더하면 ${nIs(n)}.` });
     },
     readNative() {
       const n = R(5, 9) * 10 + R(1, 9);
       const wr = [n % 10 * 10 + Math.floor(n / 10), n + 10, n - 10, n + 1, n - 1];
-      return mk({ key: 'mn' + n, subj: 'm', text: `'${native(n)}'을 숫자로 쓰면?`, speak: `${native(n)}을 숫자로 쓰면?`, answer: n, wrong: wr.filter((x) => x > 9 && x < 100 && x !== n), big: true,
-        explain: `${NAT_T[Math.floor(n / 10)]}은 ${Math.floor(n / 10) * 10}, ${NAT_O[n % 10]}은 ${n % 10}이니까 ${n}이에요.` });
+      return mk({ key: 'mn' + n, subj: 'm', text: `'${native(n)}'${josa(native(n), '을', '를').slice(native(n).length)} 숫자로 쓰면?`, speak: `${josa(native(n), '을', '를')} 숫자로 쓰면?`, answer: n, wrong: wr.filter((x) => x > 9 && x < 100 && x !== n), big: true,
+        explain: `${josa(NAT_T[Math.floor(n / 10)], '은', '는')} ${Math.floor(n / 10) * 10}, ${josa(NAT_O[n % 10], '은', '는')} ${n % 10}이니까 ${nIs(n)}.` });
     },
     readSino() {
       const n = R(5, 9) * 10 + R(1, 9);
       const wr = [n % 10 * 10 + Math.floor(n / 10), n + 10, n - 10, Math.floor(n / 10) * 100 + n % 10];
-      return mk({ key: 'ms' + n, subj: 'm', text: `'${sino(n)}'을 숫자로 쓰면?`, speak: `${sino(n)}을 숫자로 쓰면?`, answer: n, wrong: wr.filter((x) => x > 9 && x !== n), big: true,
-        explain: `${sino(n)}은 ${n}이라고 써요.` });
+      return mk({ key: 'ms' + n, subj: 'm', text: `'${sino(n)}'${josa(sino(n), '을', '를').slice(sino(n).length)} 숫자로 쓰면?`, speak: `${josa(sino(n), '을', '를')} 숫자로 쓰면?`, answer: n, wrong: wr.filter((x) => x > 9 && x !== n), big: true,
+        explain: `${josa(sino(n), '은', '는')} ${n}${numB(n) ? '이라고' : '라고'} 써요.` });
     },
     biggest() {
       const t = R(5, 9), base = t * 10 + R(0, 9);
@@ -90,11 +95,11 @@ const QS = (() => {
       const kind = R(0, 2);
       if (kind === 0) {
         const n = R(50, 98);
-        return mk({ key: 'mq+' + n, subj: 'm', text: `${n}보다 1 큰 수는?`, answer: n + 1, wrong: [n - 1, n + 10, n + 2], big: true, explain: `${n} 바로 다음 수는 ${n + 1}이에요.` });
+        return mk({ key: 'mq+' + n, subj: 'm', text: `${n}보다 1 큰 수는?`, answer: n + 1, wrong: [n - 1, n + 10, n + 2], big: true, explain: `${n} 바로 다음 수는 ${nIs(n + 1)}.` });
       }
       if (kind === 1) {
         const n = R(51, 99);
-        return mk({ key: 'mq-' + n, subj: 'm', text: `${n}보다 1 작은 수는?`, answer: n - 1, wrong: [n + 1, n - 10, n - 2], big: true, explain: `${n} 바로 앞의 수는 ${n - 1}이에요.` });
+        return mk({ key: 'mq-' + n, subj: 'm', text: `${n}보다 1 작은 수는?`, answer: n - 1, wrong: [n + 1, n - 10, n - 2], big: true, explain: `${n} 바로 앞의 수는 ${nIs(n - 1)}.` });
       }
       const s = R(50, 95), hole = R(1, 3), arr = [s, s + 1, s + 2, s + 3, s + 4];
       const ans = arr[hole];
@@ -105,7 +110,7 @@ const QS = (() => {
       const even = n % 2 === 0;
       return mk({ key: 'me' + n, subj: 'm', text: `${obj}가 ${n}개 있어요. 둘씩 짝을 지으면?`, speak: `${n}개를 둘씩 짝을 지으면?`, visual: `<div class="objs">${(obj).repeat(n)}</div>`,
         answer: even ? '남는 것이 없어요 (짝수)' : '하나가 남아요 (홀수)', wrong: [even ? '하나가 남아요 (홀수)' : '남는 것이 없어요 (짝수)'], n: 2,
-        explain: even ? `${n}은 둘씩 짝을 지으면 남는 것이 없어서 짝수예요.` : `${n}은 둘씩 짝을 지으면 하나가 남아서 홀수예요.` });
+        explain: even ? `${n}${numB(n) ? '은' : '는'} 둘씩 짝을 지으면 남는 것이 없어서 짝수예요.` : `${n}${numB(n) ? '은' : '는'} 둘씩 짝을 지으면 하나가 남아서 홀수예요.` });
     },
     shape() {
       const Qs = [
@@ -138,20 +143,20 @@ const QS = (() => {
     },
     makeTen() {
       const a = R(1, 9);
-      return mk({ key: 'mt' + a, subj: 'm', text: `${a}와(과) 더해서 10이 되는 수는?`, speak: `${a}와 더해서 10이 되는 수는?`, visual: `<div class="tenframe">${'<i class="on"></i>'.repeat(a)}${'<i></i>'.repeat(10 - a)}</div>`,
+      return mk({ key: 'mt' + a, subj: 'm', text: `${a}${numJosa(a)} 더해서 10이 되는 수는?`, speak: `${a}${numJosa(a)} 더해서 10이 되는 수는?`, visual: `<div class="tenframe">${'<i class="on"></i>'.repeat(a)}${'<i></i>'.repeat(10 - a)}</div>`,
         answer: 10 - a, wrong: numWrongs(10 - a, [1, -1, 2, -2], 0, 10), big: true, explain: `${a} + ${10 - a} = 10` });
     },
     addCarry() {
       const a = R(3, 9), b = R(11 - a, 9);
       const ans = a + b;
       return mk({ key: 'mA' + a + '+' + b, subj: 'm', text: `${a} + ${b} = ❓`, speak: `${a} 더하기 ${b}는?`, answer: ans, wrong: numWrongs(ans, [1, -1, -10, 2, -2], 1, 20), big: true,
-        explain: `${a}에 ${10 - a}를 먼저 더해 10을 만들고, 남은 ${b - (10 - a)}를 더하면 ${ans}예요.` });
+        explain: `${a}에 ${nObj(10 - a)} 먼저 더해 10을 만들고, 남은 ${nObj(b - (10 - a))} 더하면 ${nIs(ans)}.` });
     },
     subBorrow() {
       const a = R(11, 18), b = R(a - 9, 9);
       const ans = a - b;
       return mk({ key: 'mS' + a + '-' + b, subj: 'm', text: `${a} − ${b} = ❓`, speak: `${a} 빼기 ${b}는?`, answer: ans, wrong: numWrongs(ans, [1, -1, 10, 2, -2], 0, 20), big: true,
-        explain: `${a}에서 ${a - 10}을 먼저 빼서 10을 만들고, 10에서 ${b - (a - 10)}를 더 빼면 ${ans}예요.` });
+        explain: `${a}에서 ${nObj(a - 10)} 먼저 빼서 10을 만들고, 10에서 ${nObj(b - (a - 10))} 더 빼면 ${nIs(ans)}.` });
     },
     three() {
       const a = R(1, 9), c = R(1, 9);
@@ -163,12 +168,12 @@ const QS = (() => {
       const h = R(1, 12);
       const other = ((h + R(1, 10) - 1) % 12) + 1;
       return mk({ key: 'mk' + h, subj: 'm', text: '시계가 가리키는 시각은?', visual: clockSVG(h, 0), answer: tAns(h, 0), wrong: [tAns(h, 30), tAns(other, 0), tAns(12, 0)].filter((x) => x !== tAns(h, 0)),
-        explain: `긴바늘이 12를 가리키면 '몇 시'예요. 짧은바늘이 ${h}를 가리키니까 ${h}시!` });
+        explain: `긴바늘이 12를 가리키면 '몇 시'예요. 짧은바늘이 ${nObj(h)} 가리키니까 ${h}시!` });
     },
     clock30() {
       const h = R(1, 12), nh = h % 12 + 1;
       return mk({ key: 'mK' + h, subj: 'm', text: '시계가 가리키는 시각은?', visual: clockSVG(h, 30), answer: tAns(h, 30), wrong: [tAns(nh, 30), tAns(h, 0), tAns(nh, 0)],
-        explain: `긴바늘이 6을 가리키면 '30분'이에요. 짧은바늘이 ${h}와 ${nh} 사이에 있으면 ${h}시 30분!` });
+        explain: `긴바늘이 6을 가리키면 '30분'이에요. 짧은바늘이 ${h}${numJosa(h)} ${nh} 사이에 있으면 ${h}시 30분!` });
     },
     pattern() {
       const sets = [['🍎', '🍌'], ['⭐', '🌙'], ['🐰', '🥕'], ['🔴', '🔵'], ['🌸', '🍀'], ['🍓', '🍋', '🍇'], ['🐶', '🐱', '🐰'], ['🟡', '🟢', '🟣']];
@@ -215,19 +220,19 @@ const QS = (() => {
   const K = {
     spell() {
       const [e, w, wr] = pick(SPELL);
-      return mk({ key: 'ks' + w, subj: 'k', text: '그림에 알맞은 낱말은?', speak: '그림에 알맞은 낱말을 골라요', visual: `<div class="bigemo">${e}</div>`, answer: w, wrong: wr, big: true, explain: `${e} 는 '${w}'라고 써요.` });
+      return mk({ key: 'ks' + w, subj: 'k', text: '그림에 알맞은 낱말은?', speak: '그림에 알맞은 낱말을 골라요', visual: `<div class="bigemo">${e}</div>`, answer: w, wrong: wr, big: true, explain: `${e} 는 '${w}'${hasBatchim(w[w.length - 1]) ? '이라고' : '라고'} 써요.` });
     },
     batchim() {
       const want = Math.random() < 0.6;
       const ans = want ? pick(YESB) : pick(NOB);
       const wr = want ? shuffle(NOB).slice(0, 2) : shuffle(YESB).slice(0, 2);
       return mk({ key: 'kb' + (want ? 'y' : 'n') + ans, subj: 'k', text: want ? '받침이 있는 글자는?' : '받침이 없는 글자는?', answer: ans, wrong: wr, big: true,
-        explain: want ? `'${ans}'은(는) 아래에 받침이 있어요.` : `'${ans}'은(는) 아래에 받침이 없어요.` });
+        explain: want ? `'${ans}' 아래에는 받침이 있어요.` : `'${ans}' 아래에는 받침이 없어요.` });
     },
     first() {
       const [e, w, j] = pick(FIRST);
       return mk({ key: 'kf' + w, subj: 'k', text: `'${w}'의 첫소리는?`, speak: `${w}의 첫소리는?`, visual: `<div class="bigemo">${e}</div>`, answer: j, wrong: shuffle(JAMO.filter((x) => x !== j)).slice(0, 2), big: true,
-        explain: `'${w}'는 '${j}' 소리로 시작해요.` });
+        explain: `'${w}'${hasBatchim(w[w.length - 1]) ? '은' : '는'} '${j}' 소리로 시작해요.` });
     },
     opp() {
       const pair = pick(OPP), flip = Math.random() < 0.5;
@@ -281,7 +286,7 @@ const QS = (() => {
       const [w, e] = pick(WORDS);
       const c = w[0];
       return mk({ key: 'es' + w, subj: 'e', text: '어떤 글자로 시작할까요?', speak: '어떤 글자로 시작할까요?', say: [w, 'en'],
-        visual: `<div class="bigemo">${e}</div><div class="word"><span class="hole">?</span>${w.slice(1)}</div>`, answer: c, wrong: lookWrong(c), big: true, explain: `${w} 는 ${c} 로 시작해요.` });
+        visual: `<div class="bigemo">${e}</div><div class="word"><span class="hole">?</span>${w.slice(1)}</div>`, answer: c, wrong: lookWrong(c), big: true, explain: `${w} → 첫 글자는 ${c}` });
     },
     listen() {
       const [w, e] = pick(WORDS);

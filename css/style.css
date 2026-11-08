@@ -40,6 +40,19 @@ button { font-family: var(--font); color: var(--ink); cursor: pointer; border: 0
 .btn[disabled] { opacity: .45; }
 
 /* 첫 화면 */
+.deco { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.deco .cl { position: absolute; display: block; opacity: .9; animation: drift 26s linear infinite; }
+.deco .cl svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 4px 6px rgba(110, 83, 99, .06)); }
+.deco .c1 { width: 170px; top: 13%; left: -10%; animation-duration: 38s; }
+.deco .c2 { width: 120px; top: 30%; left: -10%; animation-duration: 52s; animation-delay: -20s; }
+.deco .c3 { width: 210px; top: 6%; left: -10%; animation-duration: 64s; animation-delay: -44s; }
+@keyframes drift { to { transform: translateX(125vw); } }
+.deco .sp { position: absolute; color: #ffc9de; font-size: 28px; animation: twinkle 2.4s ease-in-out infinite; font-weight: normal; }
+.deco .s1 { top: 22%; left: 14%; } .deco .s2 { top: 16%; right: 18%; color: #d0bfff; animation-delay: .8s; }
+.deco .s3 { top: 40%; right: 8%; color: #ffadc6; animation-delay: 1.4s; } .deco .s4 { top: 52%; left: 6%; color: #a5d8ff; animation-delay: .4s; }
+@keyframes twinkle { 50% { transform: scale(1.5) rotate(20deg); opacity: .4; } }
+.stageTori .hill { position: absolute; bottom: -4%; left: 50%; width: 260%; height: 26%; transform: translateX(-50%); z-index: -1; }
+.home .homeMain, .home .logo, .home .topbar { position: relative; z-index: 1; }
 .home { align-items: center; }
 .logo { margin-top: 1vh; font-size: clamp(44px, 7vw, 76px); letter-spacing: 1px; color: #ff6b9d; text-shadow: 0 4px 0 #fff, 0 7px 0 rgba(110, 83, 99, .18); position: relative; }
 .logo small { display: block; font-size: .36em; color: var(--lav); text-align: center; text-shadow: 0 2px 0 #fff; margin-top: -4px; }
@@ -87,7 +100,8 @@ button { font-family: var(--font); color: var(--ink); cursor: pointer; border: 0
 @keyframes glow { 50% { box-shadow: 0 0 0 6px rgba(255, 143, 182, .35); } }
 
 /* 옷방 */
-.closet { flex-direction: row; }
+.closet { flex-direction: row; min-height: 0; overflow: hidden; }
+.closetR, .closetL { min-height: 0; }
 .closetL { width: 38%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; position: relative; }
 .closetL .mirror { width: min(92%, calc(64vh * 200 / 270)); max-width: 380px; aspect-ratio: 200/270; background: radial-gradient(circle at 50% 40%, #fff, #fff0f6 70%); border-radius: 46% 46% 30px 30px; border: 8px solid #fff; box-shadow: var(--sh), inset 0 0 0 4px #ffd6e7; display: flex; align-items: flex-end; justify-content: center; padding: 6% 6% 2%; position: relative; }
 .closetL .mirror svg { width: 100%; height: auto; }
@@ -225,7 +239,7 @@ button { font-family: var(--font); color: var(--ink); cursor: pointer; border: 0
 .reveal svg { width: 240px; height: auto; animation: pop .5s; }
 
 /* 사진관 */
-.studio { flex-direction: row; gap: 14px; padding: 0 16px 14px; }
+.studio { flex-direction: row; gap: 14px; padding: 0 16px 14px; min-height: 0; overflow: hidden; }
 .studioMain { flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 .photoStage { position: relative; width: 100%; aspect-ratio: 5/3; max-height: 72vh; margin: 0 auto; border-radius: 26px; overflow: hidden; box-shadow: var(--sh); border: 8px solid #fff; background: #fff; touch-action: none; }
 .photoStage > svg.bd { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -302,3 +316,7 @@ button { font-family: var(--font); color: var(--ink); cursor: pointer; border: 0
 .mrow.claimed { opacity: .55; }
 .modal .tori { width: 150px; margin: 0 auto; }
 .modal .tori svg { width: 100%; height: auto; }
+
+.holdBtn { position: relative; overflow: hidden; }
+.holdBtn .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: rgba(255,255,255,.45); }
+.holdBtn .lb { position: relative; }

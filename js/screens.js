@@ -67,12 +67,16 @@ const UI = (() => {
     const fsvg = (id) => ART.friend(id, (s.friends[id] || {}).top || '');
     const nFr = Object.keys(s.friends).length;
     const nStars = Object.values(s.stars).reduce((a, b) => a + b, 0);
-    app.innerHTML = `<div class="screen bg home">
+    const cloudSVG = '<svg viewBox="0 0 120 60"><g fill="#fff"><circle cx="30" cy="38" r="20"/><circle cx="58" cy="26" r="26"/><circle cx="88" cy="38" r="20"/><rect x="30" y="38" width="58" height="20"/></g></svg>';
+    let flowers = '';
+    for (let i = 0; i < 9; i++) flowers += ART.flower(40 + i * 65, 52 + (i % 2) * 18, 9, ['#ffa8c5', '#fff3a3', '#d0bfff', '#a5d8ff'][i % 4]);
+    const hill = `<svg class="hill" viewBox="0 0 600 110" preserveAspectRatio="none"><ellipse cx="300" cy="110" rx="300" ry="80" fill="#c3fae8"/><ellipse cx="300" cy="118" rx="270" ry="70" fill="#b2f2bb"/>${flowers}</svg>`;
+    app.innerHTML = `<div class="screen bg home"><div class="deco"><i class="cl c1">${cloudSVG}</i><i class="cl c2">${cloudSVG}</i><i class="cl c3">${cloudSVG}</i><b class="sp s1">✦</b><b class="sp s2">✦</b><b class="sp s3">♥</b><b class="sp s4">✦</b></div>
       <div class="topbar" style="width:100%"><button class="iconbtn" data-a="settings" aria-label="설정">⚙️</button><div class="title"></div><button class="iconbtn" data-a="go" data-to="album" aria-label="앨범">🖼️</button>${carrotsHTML()}</div>
       <div class="logo">토리의 반짝 달리기<small>⭐ ${nStars} / 36 · 🐾 친구 ${nFr} / 12</small></div>
       <div class="homeMain">
         <div class="stageTori">
-          <div class="floor"></div>
+          ${hill}
           <div class="team l">${left.map(fsvg).join('')}</div>
           <div class="toriWrap" data-a="poke">${lookSVG(s.look)}</div>
           <div class="team r">${right.map(fsvg).join('')}</div>
@@ -184,9 +188,15 @@ const UI = (() => {
     if (d.k === 'music') { if (s.music) Sfx.startMusic(); else Sfx.stopMusic(); }
     if (d.k === 'voice' && s.voice) Voice.say('토리 목소리가 켜졌어요!');
   };
-  ACT.resetAsk = () => modal(`<div class="big">⚠️</div><h2>정말 처음부터?</h2><p>당근, 옷, 친구, 별이 모두 사라져요.<br>엄마나 오빠에게 물어보고 눌러요.</p>
-      <div class="row"><button class="btn" data-a="closeModal">아니요</button><button class="btn pink" data-a="resetDo">네, 지울래요</button></div>`);
-  ACT.resetDo = () => { Store.reset(); closeModal(); go('home'); };
+  ACT.resetAsk = () => {
+    const bg = modal(`<div class="big">⚠️</div><h2>정말 처음부터?</h2><p>당근, 옷, 친구, 별이 모두 사라져요.<br>엄마나 오빠에게 물어보고,<br>아래 버튼을 <b>3초 동안 꾹</b> 눌러요.</p>
+      <div class="row"><button class="btn" data-a="closeModal">아니요</button><button class="btn pink holdBtn" id="holdReset"><span class="fill"></span><span class="lb">꾹 눌러서 지우기</span></button></div>`);
+    const hb = bg.querySelector('#holdReset'); let t = 0, st = 0, raf = 0;
+    const tick = () => { const k = Math.min(1, (performance.now() - st) / 3000); hb.querySelector('.fill').style.width = k * 100 + '%'; if (k >= 1) { Store.reset(); closeModal(); go('home'); return; } raf = requestAnimationFrame(tick); };
+    const down = (e) => { e.preventDefault(); st = performance.now(); cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); };
+    const up = () => { cancelAnimationFrame(raf); hb.querySelector('.fill').style.width = '0%'; };
+    hb.addEventListener('pointerdown', down); hb.addEventListener('pointerup', up); hb.addEventListener('pointerleave', up); hb.addEventListener('pointercancel', up);
+  };
 
   /* ---------- 지도 ---------- */
   function isOpen(w, s) { return s === 0 || (S().stars[stageKey(w, s - 1)] || 0) > 0; }

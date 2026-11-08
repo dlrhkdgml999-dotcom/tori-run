@@ -29,7 +29,7 @@ for (let w = 0; w < QS.WORLDS.length; w++) for (let s = 0; s < 3; s++) {
       }
       const b = q.text.match(/^10개씩 묶음 (\d)개와 낱개 (\d)개는\?$/);
       if (b && String(+b[1] * 10 + +b[2]) !== q.answer) err('묶음 틀림', q);
-      const t = q.text.match(/^(\d)와\(과\) 더해서 10/);
+      const t = q.text.match(/^(\d)[와과] 더해서 10/);
       if (t && String(10 - t[1]) !== q.answer) err('10 만들기 틀림', q);
       if (q.text === '가장 큰 수는?' && String(Math.max(...q.choices.map(Number))) !== q.answer) err('가장 큰 수', q);
       if (q.text === '가장 작은 수는?' && String(Math.min(...q.choices.map(Number))) !== q.answer) err('가장 작은 수', q);
