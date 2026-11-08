@@ -75,10 +75,11 @@ const UI = (() => {
     let flowers = '';
     for (let i = 0; i < 9; i++) flowers += ART.flower(40 + i * 65, 52 + (i % 2) * 18, 9, ['#ffa8c5', '#fff3a3', '#d0bfff', '#a5d8ff'][i % 4]);
     const hill = `<svg class="hill" viewBox="0 0 600 110" preserveAspectRatio="none"><ellipse cx="300" cy="110" rx="300" ry="80" fill="#c3fae8"/><ellipse cx="300" cy="118" rx="270" ry="70" fill="#b2f2bb"/>${flowers}</svg>`;
-    const night = Runner.envNow().phase !== 'day';
+    const env = Runner.envNow(), night = env.phase !== 'day';
+    const fall = env.season === 'summer' ? '' : Array.from({ length: 12 }, (_, i) => `<i class="fall ${env.season}" style="left:${(i * 83) % 100}%;animation-delay:${-(i * 1.7) % 12}s;animation-duration:${9 + (i % 4) * 2}s"></i>`).join('');
     const badges = [0, 1, 2, 3].map((i) => `<span class="bdg ${(s.boss || {})[i] ? 'on' : ''}">${ART.badge(i, !!(s.boss || {})[i])}</span>`).join('');
     const journeyLabel = s.ended ? '🌈 여정 계속하기' : (Object.keys(s.stars).length ? '🗺️ 여정 이어 가기' : '🗺️ 여정 떠나기');
-    app.innerHTML = `<div class="screen bg home ${night ? 'night' : ''}"><div class="deco"><i class="cl c1">${cloudSVG}</i><i class="cl c2">${cloudSVG}</i><i class="cl c3">${cloudSVG}</i><b class="sp s1">✦</b><b class="sp s2">✦</b><b class="sp s3">♥</b><b class="sp s4">✦</b></div>
+    app.innerHTML = `<div class="screen bg home ${night ? 'night' : ''}"><div class="deco"><i class="cl c1">${cloudSVG}</i><i class="cl c2">${cloudSVG}</i><i class="cl c3">${cloudSVG}</i><b class="sp s1">✦</b><b class="sp s2">✦</b><b class="sp s3">♥</b><b class="sp s4">✦</b>${fall}</div>
       <div class="topbar" style="width:100%"><button class="iconbtn" data-a="settings" aria-label="설정">⚙️</button><div class="title"></div><button class="iconbtn rel" data-a="go" data-to="stamps" aria-label="칭찬 도장">🏅</button><button class="iconbtn" data-a="go" data-to="album" aria-label="앨범">🖼️</button>${carrotsHTML()}</div>
       <div class="logo">토리의 반짝 달리기<small>⭐ ${nStars}/36 · 🐾 ${nFr}/12 · <span class="gc">🥕</span> 황금 ${nGold}/36</small></div>
       <div class="badgeRow">${badges}</div>
@@ -275,6 +276,7 @@ const UI = (() => {
     addCarrots(20 * got.length); Store.save(true);
     if (quiet) return;
     got.forEach((t, i) => setTimeout(() => {
+      document.querySelectorAll('.stampPop').forEach((x) => x.remove());
       const el = document.createElement('div'); el.className = 'stampPop';
       el.innerHTML = `<div class="stamp on"><span>${t.icon}</span></div><div><b>칭찬 도장!</b><br>${t.name} <small>+20🥕</small></div>`;
       document.body.appendChild(el); Sfx.star(); setTimeout(() => el.remove(), 3200);
@@ -332,6 +334,7 @@ const UI = (() => {
     app.innerHTML = `<div class="screen bg"><div class="topbar">${back()}<div class="title">🗺️ 토리의 여정</div>${carrotsHTML()}</div><div id="jwrap" class="jwrap"></div>
       <div class="jhint">칸을 누르면 토리가 걸어가요 👆</div></div>`;
     Journey.mount($('#jwrap'), arg && arg.at != null ? arg.at : st.pos);
+    const ph = Runner.envNow().phase; if (ph !== 'day') $('.jbox').classList.add(ph);
     const nx = Journey.nextIdx();
     const bridge = arg && arg.walkNext && Journey.NODES[nx] && Journey.NODES[nx].s === 0 && Journey.NODES[nx].w > 0 && !st.seen['bridge' + Journey.NODES[nx].w];
     if (bridge) { st.seen['bridge' + Journey.NODES[nx].w] = true; setTimeout(() => { banner('🌉 다리가 생겼어요!'); Sfx.fanfare(); Voice.say(`다리가 생겼어! ${W[Journey.NODES[nx].w].name}으로 가자!`); }, 500); }
@@ -402,9 +405,15 @@ const UI = (() => {
     const st = S();
     const boss = s === 'b', bonus = s === 'x';
     const qs = boss ? QS.makeBossSet(w, 10, st.recent) : bonus ? [] : QS.makeSet(w, s, 8, st.recent);
+    // 🔁 전에 틀린 문제를 두 개까지 다시 (같은 섬, 무지개 길은 아무 섬)
+    st.retry = (st.retry || []).filter((r) => r && r.q && r.q.choices);
+    if (!boss && !bonus) {
+      const pool = st.retry.filter((r) => r.w === w || w === W.length - 1).slice(0, 2);
+      pool.forEach((r, k) => { const at = 2 + k * 3; if (at < qs.length && !qs.some((q) => q.key === r.q.key)) qs[at] = Object.assign({}, r.q, { retry: true }); });
+    }
     const fr = boss || bonus ? null : friendOf(w, s);
     G = { w, s, boss, bonus, qs, qi: -1, tries: 0, res: [], combo: 0, best: 0, qCarrots: 0, field: 0, poleBonus: 0, gold: [false, false, false],
-      rescue: fr && !st.friends[fr.id] ? fr.id : null, friend: fr, done: false };
+      rescue: fr && !st.friends[fr.id] ? fr.id : null, friend: fr, done: false, hints: 2 };
     const prog = bonus ? `<div class="prog boss"><span class="bossName">🎁 보너스 길 · 당근을 모아요! 🥕</span></div>` : boss
       ? `<div class="prog boss"><div class="hpbar"><i style="width:100%"></i></div><span class="bossName">☁️ ${ART.BOSSES[w].name}</span></div>`
       : `<div class="prog"><div class="bar" style="width:0%"></div>${qs.map((_, i) => `<span class="pin" style="left:${((i + 1) / 9) * 100}%"></span>`).join('')}<span class="goal">🏁</span><span class="me" style="left:0%">${lookSVG(st.look, 'run0', 'happy')}</span></div>`;
@@ -486,12 +495,14 @@ const UI = (() => {
     if (!G) return;
     if (qi < 0) qi = G.qi + 1;                 // 보스판: 다음 문제
     if (qi >= G.qs.length) { G.qs.push(...QS.makeBossSet(G.w, 4)); }
-    G.qi = qi; G.tries = 0;
+    G.qi = qi; G.tries = 0; G.hinted = false;
     const q = G.qs[qi];
     const long = q.choices.some((c) => c.length > 7);
     const box = $('#qbox');
     box.innerHTML = `<div class="qpanel" id="qp">
-      <div class="qL"><div class="qtext"><button class="speak" data-a="speakQ" aria-label="다시 듣기">🔊</button><span>${esc(q.text)}</span></div><div class="qvis">${q.visual}</div><div id="qex"></div></div>
+      ${q.retry ? '<div class="retryTag">🔁 다시 도전!</div>' : ''}
+      <div class="qL"><div class="qtext"><button class="speak" data-a="speakQ" aria-label="다시 듣기">🔊</button><span>${esc(q.text)}</span></div><div class="qvis">${q.visual}</div><div id="qex"></div>
+        ${G.hints > 0 && q.choices.length > 2 ? `<button class="hintBtn" data-a="hint">💡 토리 힌트 <b>${G.hints}</b></button>` : ''}</div>
       <div class="qR">${q.choices.map((ch, i) => `<button class="choice ${q.emoji ? 'emo' : ''} ${q.subj === 'e' && !q.emoji ? 'en' : ''} ${long ? 'small' : ''}" data-a="choose" data-i="${i}">${esc(ch)}</button>`).join('')}</div></div>`;
     speakQ();
   }
@@ -501,6 +512,17 @@ const UI = (() => {
     Voice.say(q.speak).then(() => { if (q.say && !q.sayAfter && G && G.qs[G.qi] === q) Voice.say(q.say[0], q.say[1], { queue: true }); });
   }
   ACT.speakQ = () => speakQ();
+  ACT.hint = (d, el) => {
+    if (!G || G.answered || G.hints <= 0 || G.hinted) return;
+    const q = G.qs[G.qi];
+    const btns = [...document.querySelectorAll('.choice')].filter((b, i) => q.choices[i] !== q.answer && !b.classList.contains('no'));
+    if (btns.length < 2) { toast('이미 하나 남았어요! 골라 봐요'); return; }
+    G.hints--; G.hinted = true;
+    const b = btns[Math.floor(Math.random() * btns.length)];
+    b.classList.add('no', 'hinted'); el.remove();
+    Sfx.pop(); Runner.react('wink', 1);
+    Voice.say(pick(['이건 아니야! 남은 것 중에 골라 봐!', '하나 지워 줄게! 힘내!']));
+  };
   function closeQ(kind) {
     const p = $('#qp'); if (p) p.classList.add('hide');
     setTimeout(() => {
@@ -521,8 +543,11 @@ const UI = (() => {
       G.answered = true;
       el.classList.add('yes'); Sfx.right();
       const first = G.tries === 0;
-      const gain = first ? 5 : 2;
+      const gain = first ? (G.hinted ? 3 : 5) : 2;
       G.res[G.qi] = { first, q };
+      const st0 = S();
+      if (first && !G.hinted) st0.retry = (st0.retry || []).filter((r) => r.q.key !== q.key);
+      if (q.retry && first) setTimeout(() => banner('🔁 이번엔 맞혔다!'), 300);
       G.qCarrots += gain; addCarrots(gain);
       confetti(r.left + r.width / 2, r.top + r.height / 2, first ? 30 : 14);
       flyText(`+${gain} 🥕`, r.left + r.width / 2 - 30, r.top - 10);
@@ -542,6 +567,10 @@ const UI = (() => {
       return;
     }
     G.tries++; G.combo = 0; showCombo();
+    if (G.tries === 1) {
+      const st0 = S(); st0.retry = st0.retry || [];
+      if (!st0.retry.some((r) => r.q.key === q.key)) { const { retry, ...plain } = q; st0.retry.unshift({ q: plain, w: G.w }); st0.retry = st0.retry.slice(0, 16); Store.save(); }
+    }
     el.classList.add('no'); Sfx.wrong(); Runner.react('oops', 1.2);
     if (G.boss) Runner.bossTaunt();
     const left = q.choices.length - G.tries;

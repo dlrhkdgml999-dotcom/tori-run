@@ -161,7 +161,11 @@ const Sfx = (() => {
   }
   function stopMusic() { musicOn = false; clearTimeout(musicTimer); }
   function duck(on) { if (musicGain && ac) musicGain.gain.setTargetAtTime(on ? 0.04 : 0.12, ac.currentTime, 0.1); }
-  document.addEventListener('visibilitychange', () => { if (document.hidden) { stopMusic(); if (ac) ac.suspend().catch(() => {}); } else if (ac) { ac.resume().catch(() => {}); } });
+  let wasPlaying = false;
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { wasPlaying = musicOn; stopMusic(); if (window.speechSynthesis) speechSynthesis.cancel(); if (ac) ac.suspend().catch(() => {}); }
+    else if (ac) { ac.resume().catch(() => {}); if (wasPlaying && Store.S.set.music) startMusic(); }
+  });
   return Object.assign(S, { unlock: ctx, startMusic, stopMusic, duck, get musicOn() { return musicOn; } });
 })();
 

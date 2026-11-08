@@ -13,4 +13,6 @@ run 기본흐름 python3 dev/sim.py basic
 run 막누르기 python3 dev/sim3.py
 run 화면크기 python3 dev/sizes.py
 run 보너스길 python3 dev/bonus_test.py
+run 다시도전_힌트 python3 dev/retry_test.py
+run 황금나비_별똥별 python3 dev/flyer_test.py
 echo "요약: OK $ok, 실패 $bad"

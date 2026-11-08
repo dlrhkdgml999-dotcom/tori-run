@@ -374,10 +374,10 @@ button { font-family: var(--font); color: var(--ink); cursor: pointer; border: 0
 .stamp.on { border: 5px solid #ff6b8b; background: radial-gradient(circle, #fff5f8 55%, #ffe3ec); transform: rotate(-8deg); box-shadow: inset 0 0 0 4px #fff, inset 0 0 0 7px #ff8fa3; }
 .stamp.on span { filter: none; }
 .stamp em { position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); background: #ff6b8b; color: #fff; font-style: normal; font-size: 13px; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
-.stampPop { position: fixed; top: 90px; right: 20px; z-index: 85; display: flex; gap: 12px; align-items: center; background: #fff; border-radius: 24px; padding: 10px 18px 10px 10px; box-shadow: var(--sh); font-size: 22px; animation: stampIn .5s cubic-bezier(.3, 1.6, .5, 1); }
+.stampPop { position: fixed; bottom: 18px; left: 18px; z-index: 85; display: flex; gap: 12px; align-items: center; background: #fff; border-radius: 24px; padding: 10px 18px 10px 10px; box-shadow: var(--sh); font-size: 22px; animation: stampIn .5s cubic-bezier(.3, 1.6, .5, 1); }
 .stampPop .stamp { width: 70px; height: 70px; font-size: 34px; }
 .stampPop b { color: #ff6b8b; font-weight: normal; } .stampPop small { color: #f08c00; }
-@keyframes stampIn { from { transform: translateX(120%) rotate(10deg); } }
+@keyframes stampIn { from { transform: translateX(-120%) rotate(-10deg); } }
 @media (max-aspect-ratio: 1/1) { .stampGrid { grid-template-columns: repeat(2, 1fr); } }
 
 .comboHud { position: absolute; top: 92px; right: 22px; display: none; align-items: baseline; gap: 2px; background: rgba(255,255,255,.9); border-radius: 99px; padding: 4px 14px; font-size: 26px; color: #ff6b6b; box-shadow: var(--sh); pointer-events: none; z-index: 11; }
@@ -407,3 +407,17 @@ button { font-family: var(--font); color: var(--ink); cursor: pointer; border: 0
 .frList { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
 .frList button { aspect-ratio: 5/3; border-radius: 8px; padding: 0; background: #fff7fb; border: 3px solid transparent; font-size: 16px; overflow: hidden; }
 .frList button.on { border-color: var(--pink); } .frList svg { width: 100%; height: 100%; display: block; }
+
+.retryTag { position: absolute; top: -18px; left: 30px; background: #ffd43b; color: #6e5363; padding: 4px 16px; border-radius: 99px; font-size: 20px; box-shadow: 0 3px 0 rgba(110,83,99,.2); animation: pop .4s; }
+.hintBtn { margin-top: 4px; background: #fff9db; border: 3px solid #ffe066; border-radius: 99px; padding: 6px 16px; font-size: 20px; box-shadow: 0 3px 0 #f2d97e; }
+.hintBtn b { font-weight: normal; background: #ffd43b; border-radius: 99px; padding: 0 8px; margin-left: 4px; }
+.choice.hinted { opacity: .35; animation: none; }
+
+/* 계절 입자 (첫 화면) */
+.deco .fall { position: absolute; top: -30px; width: 16px; height: 9px; border-radius: 50%; animation: fallDown 11s linear infinite; opacity: .85; }
+.deco .fall.autumn { background: #ffa94d; } .deco .fall.autumn:nth-child(3n) { background: #ff8787; } .deco .fall.autumn:nth-child(3n+1) { background: #ffd43b; }
+.deco .fall.winter { background: #fff; width: 10px; height: 10px; box-shadow: 0 0 6px rgba(165, 216, 255, .9); }
+.deco .fall.spring { background: #ffc9de; width: 12px; height: 8px; }
+@keyframes fallDown { to { transform: translate(-80px, 110vh) rotate(540deg); } }
+.jbox.night .jmap { filter: brightness(.78) saturate(1.1) hue-rotate(-10deg); }
+.jbox.sunset .jmap { filter: sepia(.18) saturate(1.15) brightness(.98); }
