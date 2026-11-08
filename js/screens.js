@@ -296,7 +296,7 @@ const UI = (() => {
     const row = (k, label) => `<div class="toggle">${label}<button class="sw ${s[k] ? 'on' : ''}" data-a="toggleSet" data-k="${k}"></button></div>`;
     const b = st.bday || {};
     const opts = (n, v) => `<option value="">-</option>` + Array.from({ length: n }, (_, i) => `<option ${+v === i + 1 ? 'selected' : ''}>${i + 1}</option>`).join('');
-    modal(`<h2>설정</h2>${row('sfx', '🔔 효과음')}${row('voice', '🗣️ 토리 목소리')}${row('music', '🎵 배경 음악')}
+    modal(`<h2>설정</h2>${row('sfx', '🔔 효과음')}${row('voice', '🗣️ 토리 목소리')}${row('music', '🎵 배경 음악')}${row('slow', '🐢 천천히 달리기')}${row('buzz', '📳 진동')}
       <div class="toggle">🙂 이름<input id="setName" class="inp" maxlength="6" value="${esc(st.name || '재윤')}"></div>
       <div class="toggle">🎂 생일<span><select id="bm" class="inp sm">${opts(12, b.m)}</select>월 <select id="bd" class="inp sm">${opts(31, b.d)}</select>일</span></div>
       <div class="row"><button class="btn mint" data-a="saveSet">저장</button><button class="btn" data-a="replayIntro">📖 이야기 다시 보기</button></div>
@@ -426,7 +426,7 @@ const UI = (() => {
       mode: boss ? 'boss' : bonus ? 'bonus' : 'stage', bossIdx: w, hp: 8,
       world: W[w].id, count: qs.length, seed: Math.floor(Math.random() * 6), look: st.look,
       team: st.team.filter((id) => st.friends[id]).slice(0, 3).map((id) => ({ id, top: st.friends[id].top || '' })),
-      rescue: G.rescue, tapHint: !st.seen.tap, goldHint: !st.seen.gold, blockHint: !st.seen.block,
+      rescue: G.rescue, slow: !!st.set.slow, tapHint: !st.seen.tap, goldHint: !st.seen.gold, blockHint: !st.seen.block,
       onAsk, onCarrot, onPass, onFinish: finish, onHint, onGold, onPole, onBlock, onBossHp, onFlyer,
     });
     st.plays++; Store.save();
@@ -721,7 +721,7 @@ const UI = (() => {
       Sfx.gift(); confetti(innerWidth / 2, innerHeight / 2, 70);
       let inner;
       if (it) {
-        st.owned[it.id] = true; st.gifts.push(it.id); Store.save(true);
+        st.owned[it.id] = true; st.gifts.push(it.id); st.newItems = Object.assign(st.newItems || {}, { [it.id]: 1 }); Store.save(true);
         const lk = Object.assign({}, st.look, { [it.cat]: it.id });
         inner = `<div class="reveal">${lookSVG(lk, 'cheer', 'wow')}</div><h2>${it.name}!</h2><p>${it.gold ? `황금 당근 ${it.gold}개를 모아서 받은 옷이에요 ✨` : it.ending ? '여정을 끝낸 친구만 쓰는 왕관이에요 🌈' : '특별한 옷을 받았어요 ✨'}</p>
           <div class="row"><button class="btn pink big" data-a="wearGift" data-id="${it.id}">지금 입을래요!</button><button class="btn" data-a="giftDone">나중에</button></div>`;
@@ -770,12 +770,16 @@ const UI = (() => {
         const own = s.owned[it.id], worn = s.look[it.cat] === it.id;
         const lk = { fur: s.look.fur, [it.cat]: it.id };
         const secret = it.special && !own;
+        const isNew = (s.newItems || {})[it.id];
         return `<button class="card ${worn ? 'worn' : ''} ${it.special ? 'special' : ''} ${secret ? 'secret' : ''} ${!own && !it.special && it.price > s.carrots ? 'cant' : ''}" data-a="pickItem" data-id="${it.id}">
-          <div class="th">${thumb(lk, it.cat)}</div><div class="nm">${secret ? '???' : it.name}</div>
+          ${isNew ? '<span class="newTag">NEW</span>' : ''}<div class="th">${thumb(lk, it.cat)}</div><div class="nm">${secret ? '???' : it.name}</div>
           ${own ? '<div class="tag">내 거예요</div>' : it.special ? `<div class="tag">${it.gold ? `✨ 황금 당근 ${it.gold}개` : it.ending ? '🌈 여정 끝' : it.event ? '🎄 크리스마스' : '🎁 별 3개 선물'}</div>` : `<div class="pr">${carrotTag()}${it.price}</div>`}</button>`;
       }).join('');
     }
-    const newIn = (cat) => cat === 'fur' ? Object.entries(ART.FURS).some(([k, f]) => !s.owned['fur:' + k] && f.price <= s.carrots) : ART.ITEMS.some((it) => it.cat === cat && !it.special && !s.owned[it.id] && it.price <= s.carrots);
+    // 이번에 본 칸의 NEW 표시는 다음에 지워요
+    setTimeout(() => { if (s.newItems) { ART.ITEMS.filter((it) => it.cat === CL.cat).forEach((it) => delete s.newItems[it.id]); Store.save(); } }, 1500);
+    const hasNew = (cat) => ART.ITEMS.some((it) => it.cat === cat && (s.newItems || {})[it.id]);
+    const newIn = (cat) => hasNew(cat) || (cat === 'fur' ? Object.entries(ART.FURS).some(([k, f]) => !s.owned['fur:' + k] && f.price <= s.carrots) : ART.ITEMS.some((it) => it.cat === cat && !it.special && !s.owned[it.id] && it.price <= s.carrots));
     app.innerHTML = `<div class="screen bg"><div class="topbar">${back()}<div class="title">토리 옷방</div>${carrotsHTML()}</div>
       <div class="screen closet" style="position:relative;flex:1;animation:none">
         <div class="closetL"><div class="mirror">${CL.tryOn ? '<div class="tryTag">입어 보는 중 👀</div>' : ''}<div id="mirrorTori" style="width:100%">${lookSVG(look, 'stand', CL.tryOn ? 'wow' : 'happy')}</div></div>
@@ -1000,7 +1004,13 @@ const UI = (() => {
     ag.innerHTML = list.length ? list.map((p) => `<button class="ph" data-a="photo" data-id="${p.id}"><img src="${p.url}" alt="사진"></button>`).join('') : '<div class="empty">아직 사진이 없어요<br>📸 사진관에서 찍어 봐요!</div>';
     ACT.photo = (d) => {
       const p = list.find((x) => x.id === d.id); if (!p) return;
-      modal(`<img class="photoBig" src="${p.url}" alt="사진"><div class="row"><button class="btn" data-a="delPhoto" data-id="${p.id}">🗑️ 지우기</button><button class="btn pink" data-a="closeModal">닫기</button></div>`, { x: true });
+      modal(`<img class="photoBig" src="${p.url}" alt="사진"><div class="row"><button class="btn" data-a="delPhoto" data-id="${p.id}">🗑️ 지우기</button><button class="btn sky" data-a="savePhoto" data-id="${p.id}">💾 태블릿에 저장</button><button class="btn pink" data-a="closeModal">닫기</button></div>`, { x: true });
+    };
+    ACT.savePhoto = (d) => {
+      const p = list.find((x) => x.id === d.id); if (!p) return;
+      const a = document.createElement('a'); a.href = p.url; a.download = `토리사진_${new Date(p.at).toISOString().slice(0, 10)}_${p.id.slice(-4)}.jpg`;
+      document.body.appendChild(a); a.click(); a.remove();
+      toast('💾 저장했어요! 갤러리(다운로드)에서 볼 수 있어요', 2600);
     };
     ACT.delPhoto = (d, el) => {
       if (!el.dataset.sure) { el.dataset.sure = '1'; el.textContent = '정말 지울까요? 한 번 더!'; el.classList.add('pink'); return; }

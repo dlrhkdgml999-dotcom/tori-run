@@ -16,7 +16,7 @@ const Store = (() => {
     seen: {},             // 처음 본 안내
     recent: [],           // 최근 문제 키 (반복 줄이기)
     day: '', streak: 0, lastDay: '',
-    set: { sfx: true, voice: true, music: true },
+    set: { sfx: true, voice: true, music: true, slow: false, buzz: true },
     name: '재윤', pos: 0, gold: {}, boss: {}, stat: {}, stamps: {}, bday: null,
   });
   let S = blank();
@@ -105,6 +105,7 @@ const Sfx = (() => {
     o.connect(g); g.connect(out || master); o.start(a.currentTime + t0); o.stop(a.currentTime + t0 + dur + 0.05);
   }
   const on = () => Store.S.set.sfx;
+  const buzz = (ms) => { try { if (Store.S.set.buzz !== false && navigator.vibrate) navigator.vibrate(ms); } catch (e) {} };
   const S = {
     tap() { if (on()) tone(660, 0, 0.07, 'triangle', 0.18); },
     jump() { if (on()) tone(380, 0, 0.22, 'sine', 0.25, 820); },
@@ -114,11 +115,11 @@ const Sfx = (() => {
       const f = 784 * Math.pow(2, SC[Math.min(n - 1, SC.length - 1)] / 12);
       tone(f, 0, 0.08, 'triangle', 0.2); tone(f * 1.5, 0.05, 0.1, 'triangle', 0.14);
     },
-    bonk() { if (on()) { tone(220, 0, 0.08, 'square', 0.12, 330); [880, 1175, 1568].forEach((f, i) => tone(f, 0.08 + i * 0.06, 0.12, 'triangle', 0.16)); } },
-    gold() { if (on()) [1046, 1318, 1568, 2093, 2637].forEach((f, i) => tone(f, i * 0.07, 0.28, 'triangle', 0.18)); },
+    bonk() { buzz(25); if (on()) { tone(220, 0, 0.08, 'square', 0.12, 330); [880, 1175, 1568].forEach((f, i) => tone(f, 0.08 + i * 0.06, 0.12, 'triangle', 0.16)); } },
+    gold() { buzz([30, 40, 30]); if (on()) [1046, 1318, 1568, 2093, 2637].forEach((f, i) => tone(f, i * 0.07, 0.28, 'triangle', 0.18)); },
     power() { if (on()) [523, 659, 784, 1046, 784, 1046, 1318].forEach((f, i) => tone(f, i * 0.06, 0.14, 'square', 0.07)); },
-    pole(t = 1) { if (on()) { tone(330, 0, 0.5, 'sine', 0.2, 990); for (let i = 0; i < t + 1; i++) tone(1046 * Math.pow(1.122, i * 2), 0.45 + i * 0.1, 0.18, 'triangle', 0.18); } },
-    hit(big) { if (on()) { tone(big ? 160 : 220, 0, 0.18, 'square', 0.14, 80); tone(660, 0.05, 0.12, 'triangle', 0.15); } },
+    pole(t = 1) { buzz(40); if (on()) { tone(330, 0, 0.5, 'sine', 0.2, 990); for (let i = 0; i < t + 1; i++) tone(1046 * Math.pow(1.122, i * 2), 0.45 + i * 0.1, 0.18, 'triangle', 0.18); } },
+    hit(big) { buzz(big ? 50 : 25); if (on()) { tone(big ? 160 : 220, 0, 0.18, 'square', 0.14, 80); tone(660, 0.05, 0.12, 'triangle', 0.15); } },
     wind() { if (on()) tone(400, 0, 0.5, 'sawtooth', 0.04, 150); },
     whistle() { if (on()) tone(600, 0, 0.6, 'sine', 0.07, 1400); },
     boom() { if (on()) { tone(120, 0, 0.35, 'square', 0.12, 50); [1318, 1568, 2093].forEach((f, i) => tone(f, 0.05 + i * 0.04, 0.2, 'triangle', 0.08)); } },

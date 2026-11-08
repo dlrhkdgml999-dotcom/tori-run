@@ -1,7 +1,7 @@
 /* 토리의 반짝 달리기 — 여정 지도 (섬 4개, 토리가 길을 따라 걸어가요) */
 'use strict';
 const Journey = (() => {
-  const VW = 4700, VH = 700;
+  const VW = 4920, VH = 700;
   const WCOL = ['#74c0fc', '#69db7c', '#ffa94d', '#b197fc'];
   /* 칸: 월드마다 판 3개 + 보스 */
   const NODES = [];
@@ -52,7 +52,7 @@ const Journey = (() => {
     } else {
       const cols = ['#ffadc0', '#ffd8a8', '#fff3a3', '#c3fae8', '#a5d8ff', '#d0bfff'];
       cols.forEach((cc, i) => deco.push(`<path d="M${x0 + 120 + i * 16} 470 A${380 - i * 16} ${330 - i * 16} 0 0 1 ${x0 + 880 - i * 16} 470" fill="none" stroke="${cc}" stroke-width="16" opacity=".7"/>`));
-      [[x0 + 120, 600], [x0 + 560, 610], [x0 + 980, 560]].forEach(([x, y], i) => deco.push(`<rect x="${x - 4}" y="${y - 70}" width="8" height="70" fill="#fff" stroke="#6e5363" stroke-width="2"/><circle cx="${x}" cy="${y - 80}" r="24" fill="${['#ff8fa3', '#74c0fc', '#8ce99a'][i]}" stroke="#6e5363" stroke-width="3"/>`));
+      [[x0 + 270, 650], [x0 + 560, 650], [x0 + 1040, 600]].forEach(([x, y], i) => deco.push(`<rect x="${x - 4}" y="${y - 70}" width="8" height="70" fill="#fff" stroke="#6e5363" stroke-width="2"/><circle cx="${x}" cy="${y - 80}" r="24" fill="${['#ff8fa3', '#74c0fc', '#8ce99a'][i]}" stroke="#6e5363" stroke-width="3"/>`));
       // 무지개 성
       const cx = x0 + 900, cy = 290;
       deco.push(`<g transform="translate(${cx} ${cy - 30})"><rect x="-90" y="-120" width="180" height="120" rx="10" fill="#fff0f6" stroke="#6e5363" stroke-width="4"/><rect x="-120" y="-170" width="50" height="170" rx="8" fill="#ffdeeb" stroke="#6e5363" stroke-width="4"/><rect x="70" y="-170" width="50" height="170" rx="8" fill="#ffdeeb" stroke="#6e5363" stroke-width="4"/><path d="M-125 -170 L-95 -215 L-65 -170Z M65 -170 L95 -215 L125 -170Z M-60 -120 L0 -185 L60 -120Z" fill="#b197fc" stroke="#6e5363" stroke-width="4" stroke-linejoin="round"/><rect x="-24" y="-60" width="48" height="60" rx="24" fill="#d0bfff" stroke="#6e5363" stroke-width="3"/></g>`);
@@ -72,7 +72,7 @@ const Journey = (() => {
     for (let w = 0; w < 4; w++) s += island(w);
     // 오늘의 병 편지
     if (st.bottleDay !== today()) {
-      const spots = [[480, 100], [1520, 92], [2620, 98], [3720, 92], [4420, 120]];
+      const spots = [[480, 100], [1520, 92], [2620, 98], [3720, 92], [4840, 640]];
       const [bx, by] = spots[new Date().getDate() % spots.length];
       s += `<g class="bottle" data-a="bottle"><circle cx="${bx}" cy="${by}" r="58" fill="#fff" opacity=".001"/><ellipse cx="${bx}" cy="${by + 26}" rx="44" ry="10" fill="#fff" opacity=".6"/><rect x="${bx - 18}" y="${by - 34}" width="36" height="58" rx="14" fill="#c5f6fa" stroke="#6e5363" stroke-width="4"/><rect x="${bx - 8}" y="${by - 50}" width="16" height="18" rx="4" fill="#d08c60" stroke="#6e5363" stroke-width="3"/><rect x="${bx - 10}" y="${by - 16}" width="20" height="26" rx="3" fill="#fff3bf" stroke="#e8c36b" stroke-width="2" transform="rotate(-8 ${bx} ${by})"/><text x="${bx + 38}" y="${by - 30}" font-size="30">✨</text></g>`;
     }
@@ -86,7 +86,7 @@ const Journey = (() => {
     for (let w = 0; w < 4; w++) {
       if (!(st.boss || {})[w]) continue;
       const a = NODES[w * 4 + 3], b = NODES[w * 4 + 4] || { x: a.x + 300, y: a.y + 260 };
-      const p = w < 3 ? pointOn(a, b, 0.5) : { x: a.x + 250, y: a.y + 230 };
+      const p = w < 3 ? pointOn(a, b, 0.5) : { x: a.x + 190, y: a.y + 330 };
       const done = st.bonusDay === today();
       s += `<g class="bonusSign ${done ? 'done' : ''}" data-a="bonusRun" data-w="${w}" style="cursor:pointer"><rect x="${p.x - 70}" y="${p.y - 96}" width="140" height="66" rx="18" fill="${done ? '#e9ecef' : '#fff3bf'}" stroke="#6e5363" stroke-width="4"/><text x="${p.x}" y="${p.y - 70}" text-anchor="middle" font-size="24" font-family="Jua, sans-serif" fill="#6e5363">🎁 보너스</text><text x="${p.x}" y="${p.y - 42}" text-anchor="middle" font-size="20" font-family="Jua, sans-serif" fill="${done ? '#adb5bd' : '#f08c00'}">${done ? '내일 또!' : '당근 비 🥕'}</text><rect x="${p.x - 5}" y="${p.y - 30}" width="10" height="34" fill="#a87b5a"/></g>`;
     }
@@ -129,7 +129,8 @@ const Journey = (() => {
     if (nn && !cleared(nn)) s += `<g class="jarrow"><path d="M${nn.x - 26} ${nn.y - 196} h52 l-26 34Z" fill="#ff6b9d" stroke="#fff" stroke-width="5" stroke-linejoin="round"/><rect x="${nn.x - 48}" y="${nn.y - 250}" width="96" height="46" rx="23" fill="#ff6b9d" stroke="#fff" stroke-width="5"/><text x="${nn.x}" y="${nn.y - 217}" text-anchor="middle" font-family="Jua, sans-serif" font-size="28" fill="#fff">여기!</text></g>`;
     // 끝: 무지개 마을
     const last = NODES[NODES.length - 1];
-    s += `<g transform="translate(${last.x + 230} ${last.y + 150})"><text x="0" y="0" text-anchor="middle" font-family="Jua, sans-serif" font-size="30" fill="#845ef7">무지개 마을 🏠</text></g>`;
+    const vx = last.x + 380, vy = last.y + 120, home = cleared(last);
+    s += `<g transform="translate(${vx} ${vy})" opacity="${home ? 1 : 0.55}"><ellipse cx="0" cy="40" rx="120" ry="40" fill="#fff0f6" stroke="#d0bfff" stroke-width="4"/><rect x="-50" y="-40" width="100" height="80" rx="10" fill="#fff" stroke="#6e5363" stroke-width="4"/><path d="M-66 -36 L0 -96 L66 -36Z" fill="#ff8fb6" stroke="#6e5363" stroke-width="4" stroke-linejoin="round"/><rect x="-16" y="0" width="32" height="40" rx="14" fill="#ffd8a8" stroke="#6e5363" stroke-width="3"/><circle cx="-30" cy="-12" r="10" fill="#a5d8ff" stroke="#6e5363" stroke-width="3"/><circle cx="30" cy="-12" r="10" fill="#a5d8ff" stroke="#6e5363" stroke-width="3"/>${home ? ART.heart(0, -120, 14, '#ff6b9d', 2.4) : ''}<text x="0" y="104" text-anchor="middle" font-family="Jua, sans-serif" font-size="28" fill="#845ef7">무지개 마을</text></g>`;
     // 토리
     s += `<g id="jTori"><g class="jbob">${Story_place(ART.tori(st.look, 'stand', 'happy'), 0, 0, 110)}</g></g>`;
     return s + `</svg>`;

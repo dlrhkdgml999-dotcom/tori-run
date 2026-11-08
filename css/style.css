@@ -421,3 +421,5 @@ button { font-family: var(--font); color: var(--ink); cursor: pointer; border: 0
 @keyframes fallDown { to { transform: translate(-80px, 110vh) rotate(540deg); } }
 .jbox.night .jmap { filter: brightness(.78) saturate(1.1) hue-rotate(-10deg); }
 .jbox.sunset .jmap { filter: sepia(.18) saturate(1.15) brightness(.98); }
+
+.newTag { position: absolute; top: 6px; left: 6px; z-index: 2; background: #ff6b6b; color: #fff; font-size: 15px; padding: 2px 9px; border-radius: 99px; animation: pop .5s; box-shadow: 0 2px 0 rgba(0,0,0,.12); }

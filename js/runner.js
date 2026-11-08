@@ -168,7 +168,7 @@ const Runner = (() => {
     // 파워업
     const P = g.power;
     if (P && g.state !== 'ask') { P.t -= dt; if (P.t <= 0) { g.power = null; if (P.k === 'balloon') { t.air = true; t.vy = 0; } } }
-    const spd = g.target * (P && P.k === 'star' && g.state === 'run' ? 1.35 : 1);
+    const spd = g.target * (P && P.k === 'star' && g.state === 'run' ? 1.35 : 1) * (g.opt.slow ? 0.8 : 1);
     const acc = 1500;
     if (g.speed < spd) g.speed = Math.min(spd, g.speed + acc * dt);
     else if (g.speed > spd) g.speed = Math.max(spd, g.speed - acc * 1.3 * dt);
@@ -207,7 +207,7 @@ const Runner = (() => {
           if (g.power && g.power.k === 'balloon') { g.power = null; t.vy = 0; }
         }
         if (o.asked && g.state === 'ask' && g.speed === 0 && !o.shown) { o.shown = true; g.opt.onAsk(o.qi); }
-        if (o.jumpReady && !t.air && d <= 100 && d > -OW) { t.vy = 1150 * u; t.air = true; t.holdT = 1; Sfx.jump(); o.jumpReady = false; }
+        if (o.jumpReady && !t.air && d <= (g.opt.slow ? 52 : 100) && d > -OW) { t.vy = 1150 * u; t.air = true; t.holdT = 1; Sfx.jump(); o.jumpReady = false; }
         if (d < -OW - 60) { o.done = true; g.opt.onPass && g.opt.onPass(o.qi); }
         break;
       }
