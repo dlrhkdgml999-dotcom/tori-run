@@ -36,7 +36,7 @@ async def main():
         ctx = await b.new_context(viewport={'width': 1280, 'height': 800}, has_touch=True)
         pg = await ctx.new_page()
         pg.on('pageerror', lambda e: errs.append(str(e)))
-        await pg.goto('http://localhost:8821/index.html'); await pg.wait_for_timeout(900)
+        await pg.goto('http://localhost:8821/index.html'); await pg.wait_for_timeout(900); await pg.evaluate("Object.assign(Store.S.seen,{intro:true,ch0:true,ch1:true,ch2:true,ch3:true,boss0:true,boss1:true,boss2:true,boss3:true,tap:true,gold:true,block:true}); document.querySelectorAll('.story').forEach(e=>e.remove()); UI.go('home')"); await pg.wait_for_timeout(600)
         await pg.click('[data-a="takeBonus"]'); await pg.wait_for_timeout(300)
         # 실제 속도 한 판
         await pg.evaluate("UI.ACT.play({w:'0',s:'0'})")

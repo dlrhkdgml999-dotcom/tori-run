@@ -252,7 +252,6 @@ function addCarrots(n) {
   S.carrots += n; S.earned += n; Store.save();
   document.querySelectorAll('.carrots .n').forEach((el) => { el.textContent = S.carrots; el.parentElement.classList.remove('bump'); void el.offsetWidth; el.parentElement.classList.add('bump'); });
 }
-function itemOwned(it) { return !!Store.S.owned[it.id]; }
 function affordableNew() {
   const S = Store.S;
   return ART.ITEMS.some((it) => !it.special && !S.owned[it.id] && it.price <= S.carrots) ||

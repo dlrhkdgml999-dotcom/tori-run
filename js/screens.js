@@ -98,7 +98,7 @@ const UI = (() => {
         </div>
       </div></div>`;
     homeLife();
-    if (!s.seen.intro) { setTimeout(() => Story.play('intro', () => { s.seen.intro = true; Store.save(true); dailyBonus(); }), 300); }
+    if (!s.seen.intro) { setTimeout(() => { if (S().seen.intro || cur !== 'home' || $('.story')) return; Story.play('intro', () => { S().seen.intro = true; Store.save(true); dailyBonus(); }); }, 300); }
     else if (!birthday()) dailyBonus();
   }
   /* 가만히 두면 토리가 졸고, 친구들이 가끔 말해요 */
@@ -338,9 +338,15 @@ const UI = (() => {
     Voice.say('병 편지다! ' + msg.split(' — ')[0]);
     confetti(innerWidth / 2, innerHeight / 2, 40);
   };
+  ACT.bonusRun = (d) => {
+    if (S().bonusDay === today()) { toast('🎁 보너스 길은 하루 한 번! 내일 또 와요'); Voice.say('보너스 길은 하루에 한 번! 내일 또 오자!'); return; }
+    modal(`<div class="big">🥕🌧️</div><h2>보너스 길: 당근 비!</h2><p>문제 없이 마음껏 달리며<br>당근을 잔뜩 모아요! (하루 한 번)</p><div class="row"><button class="btn pink big" data-a="bonusGo" data-w="${d.w}">달리자! ▶</button></div>`, { x: true });
+    Voice.say('보너스 길이다! 당근 비가 내린대!');
+  };
+  ACT.bonusGo = (d) => { closeModal(); go('game', { w: +d.w, s: 'x' }); };
   ACT.node = (d) => {
     const i = +d.i, n = Journey.NODES[i];
-    if (Journey.walking) return;
+    if (Journey.walking) { Journey.onIdle(() => ACT.node(d)); return; }
     if (!Journey.open(i)) { toast('🔒 앞 칸을 먼저 깨면 열려요!'); Voice.say('앞 칸을 먼저 깨면 열려요!'); return; }
     Journey.walkTo(i, () => { S().pos = i; Store.save(); stageCard(n); });
   };
@@ -378,28 +384,28 @@ const UI = (() => {
   /* ---------- 달리기 ---------- */
   function game({ w, s }) {
     const st = S();
-    const boss = s === 'b';
-    const qs = boss ? QS.makeBossSet(w, 10, st.recent) : QS.makeSet(w, s, 8, st.recent);
-    const fr = boss ? null : friendOf(w, s);
-    G = { w, s, boss, qs, qi: -1, tries: 0, res: [], combo: 0, best: 0, qCarrots: 0, field: 0, poleBonus: 0, gold: [false, false, false],
-      rescue: boss ? null : (st.friends[fr.id] ? null : fr.id), friend: fr, done: false };
-    const prog = boss
+    const boss = s === 'b', bonus = s === 'x';
+    const qs = boss ? QS.makeBossSet(w, 10, st.recent) : bonus ? [] : QS.makeSet(w, s, 8, st.recent);
+    const fr = boss || bonus ? null : friendOf(w, s);
+    G = { w, s, boss, bonus, qs, qi: -1, tries: 0, res: [], combo: 0, best: 0, qCarrots: 0, field: 0, poleBonus: 0, gold: [false, false, false],
+      rescue: fr && !st.friends[fr.id] ? fr.id : null, friend: fr, done: false };
+    const prog = bonus ? `<div class="prog boss"><span class="bossName">🎁 보너스 길 · 당근을 모아요! 🥕</span></div>` : boss
       ? `<div class="prog boss"><div class="hpbar"><i style="width:100%"></i></div><span class="bossName">☁️ ${ART.BOSSES[w].name}</span></div>`
       : `<div class="prog"><div class="bar" style="width:0%"></div>${qs.map((_, i) => `<span class="pin" style="left:${((i + 1) / 9) * 100}%"></span>`).join('')}<span class="goal">🏁</span><span class="me" style="left:0%">${lookSVG(st.look, 'run0', 'happy')}</span></div>`;
     app.innerHTML = `<div class="screen" id="gameScr">
       <div class="hud"><button class="iconbtn" data-a="pause" aria-label="멈춤">⏸️</button>${prog}
-        ${boss ? '' : `<div class="goldHud">${[0, 1, 2].map(() => '<i></i>').join('')}</div>`}${carrotsHTML()}</div>
+        ${boss || bonus ? '' : `<div class="goldHud">${[0, 1, 2].map(() => '<i></i>').join('')}</div>`}${carrotsHTML()}</div>
       <div class="comboHud" id="combo"></div>
       <div id="qbox"></div></div>`;
     Runner.start({
-      mode: boss ? 'boss' : 'stage', bossIdx: w, hp: 8,
+      mode: boss ? 'boss' : bonus ? 'bonus' : 'stage', bossIdx: w, hp: 8,
       world: W[w].id, count: qs.length, seed: Math.floor(Math.random() * 6), look: st.look,
       team: st.team.filter((id) => st.friends[id]).slice(0, 3).map((id) => ({ id, top: st.friends[id].top || '' })),
-      rescue: G.rescue, tapHint: !st.seen.tap, goldHint: !st.seen.gold,
+      rescue: G.rescue, tapHint: !st.seen.tap, goldHint: !st.seen.gold, blockHint: !st.seen.block,
       onAsk, onCarrot, onPass, onFinish: finish, onHint, onGold, onPole, onBlock, onBossHp,
     });
     st.plays++; Store.save();
-    Voice.say(boss ? '심술 구름이다! 문제를 맞혀서 당근을 던지자!' : pick(['출발!', '달려 보자!', '준비, 출발!', '친구야, 기다려! 금방 갈게!']));
+    Voice.say(bonus ? '당근 비다! 마음껏 먹자!' : boss ? '심술 구름이다! 문제를 맞혀서 당근을 던지자!' : pick(['출발!', '달려 보자!', '준비, 출발!', '친구야, 기다려! 금방 갈게!']));
   }
   function hint(html, ms = 4000) {
     const g = $('#gameScr'); if (!g) return;
@@ -412,6 +418,7 @@ const UI = (() => {
   function onHint(kind) {
     if (kind === true) { hint('👆 화면을 톡! 누르면 점프 · <b>꾹</b> 누르면 더 높이!', 7000); Voice.say('화면을 톡 누르면 점프! 꾹 누르면 더 높이 뛰어!'); }
     else if (kind === false) { S().seen.tap = true; Store.save(); hint(null); }
+    else if (kind === 'block') { hint('❓ 선물 구름 밑에서 <b>톡!</b> 머리로 콩 하면 선물이 나와요', 5000); Voice.say('선물 구름이다! 밑에서 점프해서 머리로 콩!'); S().seen.block = true; Store.save(); }
     else if (kind === 'gold') { hint('✨ 반짝이는 황금 당근! 화면을 <b>꾹</b> 눌러서 높이 뛰어요', 5000); Voice.say('반짝이는 황금 당근이다! 꾹 눌러서 높이 뛰어!'); S().seen.gold = true; Store.save(); }
     else if (kind === 'pole') { hint('🏁 깃발 앞에서 <b>꾹</b> 눌러 높이 점프! 높을수록 보너스', 4500); Voice.say('깃발이다! 꾹 눌러서 높이 뛰어!'); }
     else hint(null);
@@ -505,6 +512,7 @@ const UI = (() => {
         }
       } else G.combo = 0;
       showCombo();
+      if (Math.random() < 0.6) setTimeout(() => Runner.cheer(pick(first ? ['최고야!', '천재다!', '멋져!', '토리 짱!', '야호!'] : ['잘했어!', '좋아좋아!'])), 900);
       const pin = document.querySelectorAll('.prog .pin')[G.qi]; if (pin) pin.classList.add(first ? 'ok' : 'meh');
       Voice.say(q.sayAfter && q.say ? q.say[0] : pick(first ? ['딩동댕!', '맞았어!', '최고야!', '멋져!', '우와, 천재다!', '정답!'] : ['맞았어!', '잘했어!', '좋아!']), q.sayAfter && q.say ? q.say[1] : 'ko');
       setTimeout(() => closeQ(first ? 'first' : 'second'), 750);
@@ -522,6 +530,7 @@ const UI = (() => {
       $('#qex').innerHTML = `<div class="explain">💡 ${esc(q.explain || ('정답은 ' + q.answer))}</div><button class="btn mint qgo" data-a="afterMiss">알겠어! ▶</button>`;
       Voice.say('정답은 이거야. ' + (q.explain || '')).then(() => { if (q.say && G && G.qs[G.qi] === q) Voice.say(q.say[0], q.say[1], { queue: true }); });
     } else {
+      Runner.cheer(pick(['괜찮아!', '힘내!', '할 수 있어!']));
       Voice.say(G.boss ? pick(['흥! 틀렸지롱~ 다시 해 봐!', '후우~ 바람이다! 한 번 더!']) : pick(['괜찮아, 한 번 더!', '아깝다! 다시 해 볼까?', '음, 다른 걸 골라 볼까?']));
     }
   };
@@ -553,10 +562,20 @@ const UI = (() => {
     const firsts = G.res.filter((r) => r && r.first).length;
     mission('play', 1); mission('first', firsts);
     stat().combo = Math.max(stat().combo || 0, G.best);
-    if (!G.boss && firsts === n) stat().perfect = (stat().perfect || 0) + 1;
+    if (!G.boss && n > 0 && firsts === n) stat().perfect = (stat().perfect || 0) + 1;
     st.correct += firsts;
     st.recent = [...G.qs.slice(0, G.qi + 1).map((q) => q.key), ...st.recent].slice(0, 120);
     if (G.boss) return bossFinish(firsts, n, giftQ, pickGift);
+    if (G.bonus) {
+      st.bonusDay = today(); addCarrots(15); Store.save(true);
+      Sfx.fanfare(); confetti(innerWidth / 2, innerHeight * 0.3, 70);
+      modal(`<div class="result"><div class="big">🥕🌧️🐰</div><h2>당근 비 끝!</h2><div class="gain">${carrotTag()}<b>+${G.field + G.poleBonus + 15}</b></div>
+        <div class="gainParts"><span>🥕 길 ${G.field}</span><span>🏁 깃발 ${G.poleBonus}</span><span>🎁 보너스 15</span></div><p>내일 또 와요! 🌙</p>
+        <div class="row"><button class="btn pink big" data-a="toMap">🗺️ 지도로 ▶</button></div></div>`);
+      Voice.say(`당근을 ${G.field + G.poleBonus + 15}개나 모았어!`);
+      G.result = { w: G.w, s: 'x' };
+      return;
+    }
     const key = stageKey(G.w, G.s);
     const stars = firsts >= n - 1 ? 3 : firsts >= n - 3 ? 2 : 1;
     const prev = st.stars[key] || 0;
@@ -623,7 +642,7 @@ const UI = (() => {
       Sfx.fanfare(); confetti(innerWidth / 2, innerHeight * 0.3, 70);
       modal(`<div class="result"><div style="display:flex;justify-content:center;align-items:center;gap:10px"><div style="width:180px">${ART.boss(w, 'happy')}</div><div style="width:110px">${ART.badge(w)}</div></div>
         <h2>${ART.BOSSES[w].name}이 친구가 됐어요!</h2>
-        <p>${first ? `${W[w].name}의 배지를 받았어요! ${w < W.length - 1 ? '다음 섬으로 가는 다리가 생겼어요 🌉' : ''}` : '다시 이겼어요! 대단해요!'}</p>
+        <p>${first ? `${W[w].name}의 배지를 받았어요! ${w < W.length - 1 ? '다음 섬으로 가는 다리가 생겼어요 🌉' : ''}<br>🎁 지도에 <b>보너스 길(당근 비)</b>이 열렸어요!` : '다시 이겼어요! 대단해요!'}</p>
         <div class="gain">${carrotTag()}<b>+${total}</b></div>
         <div class="gainParts"><span>🧠 문제 ${G.qCarrots}</span><span>🥕 길 ${G.field}</span><span>👑 보스 ${bonus}</span></div>
         ${giftQ.length ? `<div class="row"><button class="btn lav big" data-a="openGift">🎁 선물 상자 열기!${giftQ.length > 1 ? ` (${giftQ.length}개)` : ''}</button></div>` : ''}
@@ -820,7 +839,7 @@ const UI = (() => {
         <div class="studioSide">
           <div class="panel"><h3>배경</h3><div class="bdList">${ART.BACKDROPS.map((b) => `<button class="${ST.bd === b.id ? 'on' : ''}" data-a="bd" data-id="${b.id}" aria-label="${b.name}"><svg viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice">${ART.backdrop(b.id)}</svg></button>`).join('')}</div></div>
           <div class="panel"><h3>스티커 (끌어서 옮겨요)</h3><div class="stkList">${ART.STICKERS.map((e) => `<button data-a="stk" data-e="${e}">${e}</button>`).join('')}</div></div>
-          <div class="panel" style="overflow:auto;min-height:0"><h3>친구 부르기</h3><div style="display:flex;flex-wrap:wrap;gap:6px">${mine.length ? mine.map((id) => `<button class="chip ${ST.pieces.some((p) => p.id === id) ? 'on' : ''}" data-a="callF" data-id="${id}" style="padding:4px 6px">${ART.friend(id, s.friends[id].top)}</button>`).join('') : '<p style="font-size:18px;margin:0;color:#9b8291">친구를 구하면 같이 찍을 수 있어요!</p>'}</div></div>
+          <div class="panel" style="overflow:auto;min-height:0"><h3>친구 부르기</h3><div style="display:flex;flex-wrap:wrap;gap:6px">${mine.length ? mine.map((id) => `<button class="chip ${ST.pieces.some((p) => p.id === id) ? 'on' : ''}" data-a="callF" data-id="${id}" style="padding:4px 6px">${ART.friend(id, s.friends[id].top)}</button>`).join('') : '<p style="font-size:18px;margin:0;color:#9b8291">친구를 구하면 같이 찍을 수 있어요!</p>'}${Object.keys(s.boss || {}).map((i) => `<button class="chip ${ST.pieces.some((p) => p.kind === 'boss' && p.i == i) ? 'on' : ''}" data-a="callB" data-i="${i}" style="padding:4px 6px">${ART.boss(+i, 'happy')}</button>`).join('')}</div></div>
         </div></div></div>`;
     renderPieces();
   }
@@ -828,6 +847,7 @@ const UI = (() => {
     const s = S();
     if (p.kind === 'tori') { const [po, ex] = ST.poses[ST.pose % ST.poses.length]; return `<div class="piece" data-i="${i}" style="left:${p.x}%;top:${p.y}%;width:${p.w}%">${lookSVG(s.look, po, ex)}</div>`; }
     if (p.kind === 'friend') return `<div class="piece" data-i="${i}" style="left:${p.x}%;top:${p.y}%;width:${p.w}%">${ART.friend(p.id, (s.friends[p.id] || {}).top || '')}</div>`;
+    if (p.kind === 'boss') return `<div class="piece" data-i="${i}" style="left:${p.x}%;top:${p.y}%;width:${p.w}%">${ART.boss(p.i, 'happy')}</div>`;
     return `<div class="piece stk" data-i="${i}" style="left:${p.x}%;top:${p.y}%;font-size:${p.size}px">${p.e}</div>`;
   }
   function renderPieces() {
@@ -873,6 +893,11 @@ const UI = (() => {
     renderPieces(); Sfx.pop();
   };
   ACT.clearStk = () => { ST.pieces = ST.pieces.filter((p) => p.kind !== 'stk'); renderPieces(); };
+  ACT.callB = (d) => {
+    const i = ST.pieces.findIndex((p) => p.kind === 'boss' && p.i === +d.i);
+    if (i >= 0) ST.pieces.splice(i, 1); else ST.pieces.push({ kind: 'boss', i: +d.i, x: 20 + Math.random() * 60, y: 45, w: 22 });
+    studio();
+  };
   ACT.callF = (d) => {
     const i = ST.pieces.findIndex((p) => p.id === d.id);
     if (i >= 0) ST.pieces.splice(i, 1);
@@ -885,10 +910,10 @@ const UI = (() => {
     for (const p of ST.pieces) {
       if (p.kind === 'stk') { body += `<text x="${p.x * 10}" y="${p.y * 6}" font-size="${p.size * 1.6}" text-anchor="middle" dominant-baseline="central">${p.e}</text>`; continue; }
       const w = p.w * 10;
-      const svg = p.kind === 'tori' ? lookSVG(s.look, ...ST.poses[ST.pose % ST.poses.length]) : ART.friend(p.id, (s.friends[p.id] || {}).top || '');
-      const ratio = p.kind === 'tori' ? 260 / 200 : 134 / 120;
+      const svg = p.kind === 'tori' ? lookSVG(s.look, ...ST.poses[ST.pose % ST.poses.length]) : p.kind === 'boss' ? ART.boss(p.i, 'happy') : ART.friend(p.id, (s.friends[p.id] || {}).top || '');
+      const ratio = p.kind === 'tori' ? 260 / 200 : p.kind === 'boss' ? 200 / 240 : 134 / 120;
       const h = w * ratio;
-      body += svg.replace('<svg ', `<svg x="${p.x * 10 - w / 2}" y="${p.y * 6 - h}" `).replace(/width="(200|120)" height="(260|134)"/, `width="${w}" height="${h}"`);
+      body += svg.replace('<svg ', `<svg x="${p.x * 10 - w / 2}" y="${p.y * 6 - h}" `).replace(/width="\d+" height="\d+"/, `width="${w}" height="${h}"`);
     }
     body += `<text x="980" y="585" font-size="22" text-anchor="end" fill="#fff" opacity=".85" font-family="sans-serif">토리의 반짝 달리기 · ${today()}</text>`;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" width="1000" height="600">${body}</svg>`;

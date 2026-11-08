@@ -72,7 +72,7 @@ const Journey = (() => {
     for (let w = 0; w < 4; w++) s += island(w);
     // 오늘의 병 편지
     if (st.bottleDay !== today()) {
-      const spots = [[700, 90], [1820, 640], [2950, 80], [4100, 640], [520, 620]];
+      const spots = [[480, 100], [1520, 92], [2620, 98], [3720, 92], [4420, 120]];
       const [bx, by] = spots[new Date().getDate() % spots.length];
       s += `<g class="bottle" data-a="bottle"><circle cx="${bx}" cy="${by}" r="58" fill="#fff" opacity=".001"/><ellipse cx="${bx}" cy="${by + 26}" rx="44" ry="10" fill="#fff" opacity=".6"/><rect x="${bx - 18}" y="${by - 34}" width="36" height="58" rx="14" fill="#c5f6fa" stroke="#6e5363" stroke-width="4"/><rect x="${bx - 8}" y="${by - 50}" width="16" height="18" rx="4" fill="#d08c60" stroke="#6e5363" stroke-width="3"/><rect x="${bx - 10}" y="${by - 16}" width="20" height="26" rx="3" fill="#fff3bf" stroke="#e8c36b" stroke-width="2" transform="rotate(-8 ${bx} ${by})"/><text x="${bx + 38}" y="${by - 30}" font-size="30">✨</text></g>`;
     }
@@ -81,6 +81,14 @@ const Journey = (() => {
       const a = NODES[w * 4 + 3], b = NODES[w * 4 + 4];
       const ok = cleared(a);
       s += `<g opacity="${ok ? 1 : 0.35}"><path d="${seg(a, b).d}" fill="none" stroke="#a87b5a" stroke-width="34" stroke-linecap="round"/><path d="${seg(a, b).d}" fill="none" stroke="#e8c39e" stroke-width="24" stroke-dasharray="6 14" stroke-linecap="butt"/></g>`;
+    }
+    // 보너스 길 (보스를 이긴 섬마다, 하루 한 번)
+    for (let w = 0; w < 4; w++) {
+      if (!(st.boss || {})[w]) continue;
+      const a = NODES[w * 4 + 3], b = NODES[w * 4 + 4] || { x: a.x + 300, y: a.y + 260 };
+      const p = w < 3 ? pointOn(a, b, 0.5) : { x: a.x + 250, y: a.y + 230 };
+      const done = st.bonusDay === today();
+      s += `<g class="bonusSign ${done ? 'done' : ''}" data-a="bonusRun" data-w="${w}" style="cursor:pointer"><rect x="${p.x - 70}" y="${p.y - 96}" width="140" height="66" rx="18" fill="${done ? '#e9ecef' : '#fff3bf'}" stroke="#6e5363" stroke-width="4"/><text x="${p.x}" y="${p.y - 70}" text-anchor="middle" font-size="24" font-family="Jua, sans-serif" fill="#6e5363">🎁 보너스</text><text x="${p.x}" y="${p.y - 42}" text-anchor="middle" font-size="20" font-family="Jua, sans-serif" fill="${done ? '#adb5bd' : '#f08c00'}">${done ? '내일 또!' : '당근 비 🥕'}</text><rect x="${p.x - 5}" y="${p.y - 30}" width="10" height="34" fill="#a87b5a"/></g>`;
     }
     // 길
     for (let i = 0; i < NODES.length - 1; i++) {
@@ -133,7 +141,8 @@ const Journey = (() => {
   }
 
   /* 토리 위치·걷기 */
-  let at = 0, walking = false;
+  let at = 0, walking = false, after = null;
+  function onIdle(fn) { if (!walking) fn(); else after = fn; }
   function setTori(x, y, face = 1) {
     const g = document.getElementById('jTori'); if (!g) return;
     g.setAttribute('transform', `translate(${x} ${y - 44}) scale(${face} 1)`);
@@ -170,11 +179,11 @@ const Journey = (() => {
       if (idx === 0 && t < 0.05 || t > 0.5) scrollTo(p.x, false);
       if (t >= 1) {
         Sfx.tap(); idx++; t0 = now;
-        if (idx >= path.length) { walking = false; at = i; setTori(B.x, B.y); done && done(); return; }
+        if (idx >= path.length) { walking = false; at = i; setTori(B.x, B.y); done && done(); const f = after; after = null; if (f) setTimeout(f, 60); return; }
       }
       requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
   }
-  return { NODES, mount, walkTo, open, cleared, nextIdx, get at() { return at; }, get walking() { return walking; } };
+  return { NODES, mount, walkTo, onIdle, open, cleared, nextIdx, get at() { return at; }, get walking() { return walking; } };
 })();

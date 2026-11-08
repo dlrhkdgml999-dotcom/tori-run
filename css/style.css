@@ -25,7 +25,7 @@ button { font-family: var(--font); color: var(--ink); cursor: pointer; border: 0
 .topbar { display: flex; align-items: center; gap: 12px; padding: max(12px, env(safe-area-inset-top)) 18px 6px; position: relative; z-index: 5; }
 .topbar .title { font-size: 34px; flex: 1; text-align: center; text-shadow: 0 3px 0 #fff; }
 .iconbtn { width: 64px; height: 64px; border-radius: 22px; background: #fff; font-size: 32px; box-shadow: var(--sh); display: grid; place-items: center; flex: none; transition: transform .1s; }
-.iconbtn:active, .btn:active, .card:active, .stagebtn:active, .choice:active { transform: translateY(4px) scale(.98); }
+.iconbtn:active, .btn:active, .card:active, .choice:active { transform: translateY(4px) scale(.98); }
 .carrots { display: flex; align-items: center; gap: 6px; background: #fff; padding: 8px 18px 8px 10px; border-radius: 99px; font-size: 30px; box-shadow: var(--sh); flex: none; }
 .carrots img { width: 40px; height: 40px; }
 .carrots.bump { animation: bump .35s; }
@@ -58,7 +58,6 @@ button { font-family: var(--font); color: var(--ink); cursor: pointer; border: 0
 .logo small { display: block; font-size: .36em; color: var(--lav); text-align: center; text-shadow: 0 2px 0 #fff; margin-top: -4px; }
 .homeMain { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4vw; width: 100%; min-height: 0; }
 .stageTori { position: relative; height: min(62vh, 470px); aspect-ratio: 200/300; display: flex; align-items: flex-end; justify-content: center; }
-.stageTori .floor { position: absolute; bottom: 0; left: 8%; right: 8%; height: 9%; background: radial-gradient(ellipse, rgba(110, 83, 99, .18), transparent 70%); }
 .stageTori .toriWrap { width: 100%; animation: idle 1.6s ease-in-out infinite; transform-origin: 50% 100%; }
 .stageTori .toriWrap svg { width: 100%; height: auto; display: block; }
 .stageTori .bubble { position: absolute; top: 0; left: 70%; background: #fff; border-radius: 22px; padding: 10px 18px; font-size: 24px; box-shadow: var(--sh); white-space: nowrap; animation: pop .3s; }
@@ -78,26 +77,6 @@ button { font-family: var(--font); color: var(--ink); cursor: pointer; border: 0
 .dot { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 50%; background: #ff6b6b; border: 3px solid #fff; }
 .rel { position: relative; }
 
-/* 지도 */
-.mapGrid { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 8px 18px 18px; min-height: 0; }
-.world { border-radius: 30px; background: #fff; box-shadow: var(--sh); display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
-.world .wh { padding: 12px 10px 10px; text-align: center; color: #fff; text-shadow: 0 2px 0 rgba(0, 0, 0, .15); }
-.world .wh .wi { font-size: 40px; }
-.world .wh .wn { font-size: 28px; }
-.world .wh .ws { font-size: 18px; opacity: .95; }
-.world .stages { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 12px; justify-content: space-around; }
-.stagebtn { flex: 1; max-height: 150px; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 22px; background: #fff7fb; border: 3px solid #f6e3ec; text-align: left; transition: transform .1s; min-height: 0; }
-.stagebtn .num { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 26px; flex: none; }
-.stagebtn .info { flex: 1; min-width: 0; }
-.stagebtn .nm { font-size: 20px; line-height: 1.15; }
-.stagebtn .stars { font-size: 26px; }
-.stagebtn .stars { font-size: 20px; letter-spacing: 1px; color: #ffc107; }
-.stagebtn .stars .off { color: #e9dfe5; }
-.stagebtn .fr { width: 72px; flex: none; }
-.stagebtn .fr svg { width: 100%; height: auto; display: block; }
-.stagebtn.locked { opacity: .55; }
-.stagebtn.next { border-color: var(--pink); animation: glow 1.4s ease-in-out infinite; }
-@keyframes glow { 50% { box-shadow: 0 0 0 6px rgba(255, 143, 182, .35); } }
 
 /* 옷방 */
 .closet { flex-direction: row; min-height: 0; overflow: hidden; }
@@ -161,7 +140,6 @@ button { font-family: var(--font); color: var(--ink); cursor: pointer; border: 0
 .prog .pin { position: absolute; top: 50%; width: 16px; height: 16px; border-radius: 50%; background: #fff; border: 3px solid #e7cfdc; transform: translate(-50%, -50%); }
 .prog .pin.ok { background: #ffd43b; border-color: #fff; box-shadow: 0 0 0 2px #f2b705; }
 .prog .pin.meh { background: #a5d8ff; border-color: #fff; }
-.prog .goal { position: absolute; right: -6px; top: 50%; transform: translateY(-50%); font-size: 34px; }
 .prog .me { position: absolute; top: 50%; transform: translate(-50%, -62%); width: 44px; transition: left .3s; }
 .prog .me svg { width: 100%; height: auto; display: block; }
 .combo { position: absolute; top: 86px; right: 20px; font-size: 30px; color: #ff6b6b; text-shadow: 0 3px 0 #fff; animation: pop .3s; pointer-events: none; }
@@ -225,9 +203,6 @@ button { font-family: var(--font); color: var(--ink); cursor: pointer; border: 0
 .gainParts { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; font-size: 19px; color: #9b8291; }
 .gainParts span { background: #fff7fb; padding: 4px 10px; border-radius: 99px; }
 .result .bigStars { font-size: 66px; }
-.tally { display: flex; flex-direction: column; gap: 6px; margin: 10px auto; font-size: 25px; max-width: 460px; }
-.tally div { display: flex; justify-content: space-between; background: #fff7fb; padding: 8px 16px; border-radius: 16px; }
-.tally .sum { background: #fff3bf; font-size: 30px; }
 .wrongs { text-align: left; font-size: 21px; margin-top: 8px; max-height: 26vh; overflow: auto; }
 .wrongs div { background: #f8f9fa; border-radius: 14px; padding: 8px 12px; margin: 6px 0; }
 .wrongs b { color: #2b8a3e; font-weight: normal; }
@@ -282,7 +257,6 @@ button { font-family: var(--font); color: var(--ink); cursor: pointer; border: 0
 
 /* 세로 화면·작은 화면 */
 @media (max-aspect-ratio: 1/1) {
-  .mapGrid { grid-template-columns: 1fr 1fr; overflow-y: auto; }
   .homeMain { flex-direction: column; gap: 2vh; }
   .stageTori { height: 40vh; }
   .homeSide { flex-direction: row; flex-wrap: wrap; justify-content: center; }
@@ -426,3 +400,5 @@ button { font-family: var(--font); color: var(--ink); cursor: pointer; border: 0
 .jmap .bottle { animation: bob 2.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; cursor: pointer; }
 @keyframes bob { 50% { transform: translateY(-10px) rotate(8deg); } }
 .letter { background: #fffbe8; border: 4px dashed #e8c36b; border-radius: 20px; padding: 14px 18px; font-size: 24px; line-height: 1.5; margin: 8px 0; }
+
+.jmap .bonusSign:not(.done) { animation: bob 2.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }

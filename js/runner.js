@@ -64,7 +64,18 @@ const Runner = (() => {
         x += GAP;
       }
     }
-    const finishX = boss ? 1e9 : obs[obs.length - 1].x + 1050;
+    if (opt.mode === 'bonus') {   // 보너스 길: 문제 없이 당근이 가득
+      for (let k = 0; k < 44; k++) {
+        const bx = 700 + k * 150;
+        const p = k % 11;
+        if (p < 4) items.push({ x: bx, y: 60 + Math.sin(k) * 20, kind: 'c' }, { x: bx + 60, y: 120 + (k % 3) * 60, kind: 'c' });
+        else if (p < 7) items.push({ x: bx, y: 200 + (p - 4) * 50, kind: 'c' }, { x: bx + 50, y: 260, kind: 'c' });
+        else if (p === 7) items.push({ x: bx, y: BLOCK_Y, kind: 'q', gives: k % 2 ? 'star' : 'balloon', bump: 0 });
+        else if (p === 8) items.push({ x: bx, y: 300, kind: 'big' });
+        else items.push({ x: bx, y: 240, kind: 's' }, { x: bx + 70, y: 60, kind: 'c' });
+      }
+    }
+    const finishX = boss ? 1e9 : opt.mode === 'bonus' ? 7600 : obs[obs.length - 1].x + 1050;
     G = {
       opt, T, env, obs, items, finishX, boss, scroll: 0, speed: 0, target: SPEED, state: 'run',
       tori: { y: 0, vy: 0, air: false, holdT: 0, expr: 'normal', exprT: 0, pose: 'run0', poseT: 0, squash: 0 },
@@ -102,6 +113,10 @@ const Runner = (() => {
     react(kind === 'first' ? 'happy' : kind === 'second' ? 'wink' : 'normal', 1.4);
   }
   function react(expr, secs = 1) { if (G) { G.tori.expr = expr; G.tori.exprT = secs; } }
+  function cheer(text) {   // 같이 달리는 친구가 한마디
+    if (!G || !(G.opt.team || []).length) return;
+    G.talk = { i: Math.floor(Math.random() * G.opt.team.length), text, t: 1.6 };
+  }
   function power(k) {
     if (!G || G.boss) return;
     G.power = { k, t: k === 'star' ? 6 : 4.5, max: k === 'star' ? 6 : 4.5 };
@@ -237,7 +252,8 @@ const Runner = (() => {
         if (it.used) continue;
         const sx = it.x * u - g.scroll;
         const head = t.y / u + 186;
-        if (t.vy > 0 && Math.abs(sx - tx) < 52 * u && head >= it.y - 8 && head <= it.y + 40) {
+        if (g.opt.blockHint && !g.blockHinted && sx < W * 0.85 && g.state === 'run') { g.blockHinted = true; g.opt.onHint && g.opt.onHint('block'); }
+        if (t.vy > 0 && Math.abs(sx - tx) < 85 * u && head >= it.y - 10 && head <= it.y + 46) {
           it.used = true; it.bump = 1; t.vy = -60 * u; t.y = (it.y - 188) * u; g.shake = 0.15; Sfx.bonk();
           openBlock(it, sx, gy - (it.y + 32) * u);
         }
@@ -292,8 +308,11 @@ const Runner = (() => {
   /* 보스 진행 */
   function updateBoss(dt) {
     const g = G, B = g.bossS;
-    B.x = W * 0.74 + Math.sin(g.time * 1.3) * 18 * u;
-    B.y = gy - 330 * u + Math.sin(g.time * 2.1) * 14 * u;
+    const asking = g.state === 'ask';
+    B.ox = B.ox == null ? W * 0.74 : B.ox + ((asking ? W * 0.8 : W * 0.72) - B.ox) * Math.min(1, dt * 3);
+    B.oy = B.oy == null ? gy - 330 * u : B.oy + ((asking ? gy - 200 * u : gy - 330 * u) - B.oy) * Math.min(1, dt * 3);
+    B.x = B.ox + Math.sin(g.time * 1.3) * 18 * u;
+    B.y = B.oy + Math.sin(g.time * 2.1) * 14 * u;
     if (B.moodT > 0) { B.moodT -= dt; if (B.moodT <= 0 && !B.won) B.mood = 'angry'; }
     if (B.wind > 0) {
       B.wind -= dt;
@@ -457,6 +476,17 @@ const Runner = (() => {
       const im = ImgCache.get('f:' + f.id + ':' + f.top, () => ART.friend(f.id, f.top));
       if (im.ok) c.drawImage(im.img, fx - fw / 2, gy - fh - fy - hop + 6 * u, fw, fh);
     });
+    if (g.talk && g.talk.t > 0) {
+      g.talk.t -= 1 / 60;
+      const fx = tx - 130 * u - g.talk.i * 98 * u, fy = gy - 150 * u;
+      c.save(); c.font = `${22 * u}px Jua, sans-serif`;
+      const w = c.measureText(g.talk.text).width + 26 * u;
+      c.globalAlpha = Math.min(1, g.talk.t * 3);
+      c.fillStyle = '#fff'; roundRect(fx - w / 2, fy - 44 * u, w, 40 * u, 18 * u); c.fill(); ol(2.4);
+      c.beginPath(); c.moveTo(fx - 8 * u, fy - 5 * u); c.lineTo(fx, fy + 8 * u); c.lineTo(fx + 8 * u, fy - 5 * u); c.fill();
+      c.fillStyle = '#6e5363'; c.textAlign = 'center'; c.fillText(g.talk.text, fx, fy - 17 * u); c.textAlign = 'left';
+      c.restore();
+    }
     // 보스
     if (g.boss) drawBoss();
     // 토리
@@ -784,7 +814,7 @@ const Runner = (() => {
   }
 
   return {
-    init, start, stop, tap, release, answered, react, power, bossAttack, bossTaunt, setPaused, envNow,
+    init, start, stop, tap, release, answered, react, cheer, power, bossAttack, bossTaunt, setPaused, envNow,
     get active() { return !!G; }, get state() { return G && G.state; }, get u() { return u; }, get tx() { return tx; }, _G: () => G,
   };
 })();

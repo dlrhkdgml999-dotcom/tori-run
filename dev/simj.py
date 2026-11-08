@@ -7,7 +7,7 @@ NW = int(sys.argv[3]) if len(sys.argv) > 3 else 1
 OUT = f'/home/claude/tori-run/dev/out/{NAME}'; os.makedirs(OUT, exist_ok=True)
 srv = subprocess.Popen(['python3', '-m', 'http.server', '8841'], cwd='/home/claude/tori-run', stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL); time.sleep(.6)
 errs = []; random.seed(3)
-BOT = open('/home/claude/tori-run/dev/bot.js').read()
+BOT = open('/home/claude/tori-run/dev/' + (os.environ.get('BOT') or 'bot.js')).read()
 shots = {'n': 0}
 async def shot(pg, n): await pg.screenshot(path=f'{OUT}/{shots["n"]:02d}_{n}.png'); shots['n'] += 1
 async def story_through(pg, tag, snap=True):
@@ -34,6 +34,7 @@ async def play(pg, tag, snap=False):
         if await pg.query_selector('#qp:not(.hide)') and not await pg.evaluate('UI.G && UI.G.answered'):
             if snap and qn in (0, 3): await pg.wait_for_timeout(300); await shot(pg, f'{tag}_q{qn}')
             q = await pg.evaluate('({a:UI.G.qs[UI.G.qi].answer, c:UI.G.qs[UI.G.qi].choices})')
+            if os.environ.get('THINK'): await pg.wait_for_timeout(random.randint(2000, 5000))
             if random.random() < ACC: await pg.click(f'.choice[data-i="{q["c"].index(q["a"])}"]')
             else:
                 wr = [i for i, c in enumerate(q['c']) if c != q['a']]
@@ -63,7 +64,7 @@ async def main():
         await story_through(pg, 'intro')
         await pg.wait_for_timeout(500); await shot(pg, 'bonus')
         await pg.click('[data-a="takeBonus"]'); await pg.wait_for_timeout(400); await shot(pg, 'home')
-        await pg.evaluate('window.__fast = 3'); await pg.evaluate(BOT)
+        await pg.evaluate(f"window.__fast = {os.environ.get('FAST') or 3}"); await pg.evaluate(BOT)
         await pg.click('[data-to="map"]'); await pg.wait_for_timeout(800); await shot(pg, 'map')
         log = []
         for w in range(NW):
@@ -78,6 +79,8 @@ async def main():
                 log.append((w, s, round(t), g))
                 await after_result(pg, f'w{w}s{s}', snap)
             await shot(pg, f'map_after_w{w}')
+        if os.environ.get('SHORT'):
+            S = await pg.evaluate('Store.S'); [print('판', l) for l in log]; print('blocks', S.get('stat'), '봇', await pg.evaluate('__botLog.jumps')); print('오류', len(errs), errs[:5]); await b.close(); return
         await pg.evaluate("UI.go('home')"); await pg.wait_for_timeout(2500)
         while await pg.query_selector('.modalBg [data-a]'):
             await pg.evaluate('UI.ACT.closeModal()'); await pg.wait_for_timeout(300)
