@@ -91,7 +91,7 @@ const UI = (() => {
           <div class="team r">${right.map(fsvg).join('')}</div>
         </div>
         <div class="homeSide">
-          <button class="btn pink big" data-a="go" data-to="map">${journeyLabel}</button>
+          <button class="btn pink big jbtn" data-a="go" data-to="map">${journeyLabel}<small class="nextGoal">${nextGoal()}</small></button>
           <button class="btn lav rel" data-a="go" data-to="closet"><span class="em">👗</span> 토리 옷방${affordableNew() ? '<span class="dot"></span>' : ''}</button>
           <button class="btn mint" data-a="go" data-to="friends"><span class="em">🐾</span> 친구들</button>
           <button class="btn sky" data-a="go" data-to="studio"><span class="em">📸</span> 사진관</button>
@@ -145,6 +145,13 @@ const UI = (() => {
     ACT.poke.t = setTimeout(() => { const w2 = $('.toriWrap'); if (w2) { w2.innerHTML = lookSVG(S().look); w2.classList.remove('cheer'); } const bb = $('.stageTori .bubble'); if (bb) bb.remove(); }, 2200);
     homeLife();
   };
+  function nextGoal() {
+    const st = S();
+    if (st.ended) { const g = goldCount(); return g < 36 ? `숨은 황금 당근 ${36 - g}개 남았어요 ✨` : '모든 비밀을 찾았어요! 🌈'; }
+    const n = Journey.NODES[Journey.nextIdx()]; if (!n) return '';
+    const wd = W[n.w];
+    return n.s === 'b' ? `다음: ${wd.icon} ${ART.BOSSES[n.w].name}!` : `다음: ${wd.icon} ${wd.name} ${n.s + 1} · ${QS.josa(friendOf(n.w, n.s).name, '을', '를')} 구하러`;
+  }
   function goldCount() { return Object.values(S().gold || {}).reduce((a, g) => a + g.filter(Boolean).length, 0); }
   function christmas() {
     const s = S(), d = new Date();

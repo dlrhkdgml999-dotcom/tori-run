@@ -430,3 +430,17 @@ button { font-family: var(--font); color: var(--ink); cursor: pointer; border: 0
 .helpGrid span { grid-row: span 2; font-size: 32px; align-self: center; text-align: center; }
 .helpGrid b { font-weight: normal; font-size: 21px; } .helpGrid small { font-size: 16px; color: var(--ink2); }
 @media (max-aspect-ratio: 1/1) { .helpGrid { grid-template-columns: 1fr; } }
+
+.jbtn { flex-direction: column; gap: 2px; }
+.jbtn .nextGoal { font-size: 17px; opacity: .95; text-shadow: none; }
+@media (max-height: 520px) { .jbtn .nextGoal { font-size: 13px; } }
+
+@media (max-height: 520px) and (min-aspect-ratio: 1/1) {
+  .home .logo { font-size: 30px; margin-top: -54px; } .home .logo small { font-size: 13px; }
+  .home .badgeRow { display: none; }
+  .home .homeMain { align-items: center; gap: 3vw; }
+  .home .stageTori { height: 64vh; }
+  .homeSide { gap: 8px; } .homeSide .btn { padding: 7px 14px; font-size: 17px; border-radius: 18px; }
+  .homeSide .btn.big { font-size: 22px; padding: 8px 18px; }
+  .home .team svg { width: 54px; }
+}
