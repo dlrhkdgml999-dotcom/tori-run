@@ -1,16 +1,21 @@
-/* 토리의 반짝 달리기 — 달리기 (캔버스)
+/* 포포의 반짝 모험 — 달리기 (캔버스)
    기준 단위: 화면 높이 800일 때 1 = 1px (u 배율) */
 'use strict';
 const Runner = (() => {
   let cv, c, W = 0, H = 0, dpr = 1, u = 1, gy = 0, tx = 0;
   let raf = 0, last = 0, G = null, paused = false, holding = false;
-  const SPEED = 340, GAP = 1180, OW = 104, BLOCK_Y = 300, POLE_H = 460;
+  const SPEED = 340, SEG = 2400, OW = 104, BLOCK_Y = 300, POLE_H = 460;
 
+  /* 월드마다 풍경: 하늘 3색, 산 3겹, 풀, 흙 */
   const THEMES = {
-    m: { sky: ['#a5dcff', '#e7f6ff'], far: ['#b2f2bb', '#94e3a0'], top: '#69db7c', top2: '#51cf66', soil: '#d4a373', soil2: '#c08b5c', obst: ['rock', 'log'], amb: 'butterfly', mid: 'bush', sun: true },
-    k: { sky: ['#b8f0d8', '#f1fbe4'], far: ['#8fd19e', '#6fbf83'], top: '#40c057', top2: '#2f9e44', soil: '#b08968', soil2: '#9c7656', obst: ['stump', 'mushroom'], amb: 'firefly', mid: 'tree' },
-    e: { sky: ['#ffd6a5', '#fff4e6'], far: ['#74c0fc', '#4dabf7'], top: '#ffe8a3', top2: '#fcd77a', soil: '#f8d98f', soil2: '#eec46d', obst: ['castle', 'shell'], amb: 'bubble', mid: 'palm', sea: true, sun: true },
-    r: { sky: ['#d9ccff', '#ffeef6'], far: ['#ffffff', '#f3eaff'], top: '#fcc2d7', top2: '#f783ac', soil: '#fff0f6', soil2: '#ffdeeb', obst: ['gift', 'cloud'], amb: 'sparkle', mid: 'candy', rainbow: true },
+    m: { sky: ['#73c4f2', '#bde4fa', '#fff3db'], ridges: [['#d5e8f5', '#eef6fb', -270, 120, 430, 0.05, 1], ['#ace0b4', '#d0f0cf', -160, 80, 300, 0.14, 2], ['#86d290', '#aee6aa', -70, 50, 210, 0.3, 3]],
+      grass: ['#9ae48f', '#5cc460'], soil: ['#ecc79c', '#d6a473'], obst: ['rock', 'log'], amb: 'butterfly', mid: 'bush', sun: true, rays: true, fore: 'tuft' },
+    k: { sky: ['#6ccdb8', '#c4eed6', '#fffbe0'], ridges: [['#c6e6d4', '#e4f4ea', -270, 110, 380, 0.05, 4], ['#83c99a', '#a9dfb5', -170, 90, 160, 0.14, 5], ['#5bb277', '#7fcb8f', -80, 60, 120, 0.3, 6]],
+      grass: ['#7ad683', '#3fa85a'], soil: ['#cfa47c', '#ab805b'], obst: ['stump', 'mushroom'], amb: 'firefly', mid: 'tree', rays: true, fore: 'tuft' },
+    e: { sky: ['#56bdf3', '#a6e1fb', '#fff1d4'], ridges: [['#b9dff2', '#dcf0fa', -250, 70, 500, 0.04, 7]], sea: true,
+      grass: ['#fff0c4', '#f3d08a'], soil: ['#ffe3a8', '#f1c77a'], obst: ['castle', 'shell'], amb: 'bubble', mid: 'palm', sun: true, fore: 'shell' },
+    r: { sky: ['#b39dff', '#ffc4e4', '#fff3f9'], ridges: [['#ece0ff', '#f8f2ff', -270, 110, 400, 0.05, 8], ['#ffd8ee', '#fff0f8', -170, 80, 260, 0.14, 9], ['#ffc2df', '#ffe0ef', -80, 55, 190, 0.3, 10]],
+      grass: ['#ffd2e8', '#f58fbf'], soil: ['#fff2f8', '#ffd9eb'], obst: ['gift', 'cloud'], amb: 'sparkle', mid: 'candy', rainbow: true, fore: 'sugar' },
   };
   /* 지금 시간·계절 */
   function envNow(over) {
@@ -43,25 +48,33 @@ const Runner = (() => {
     const env = envNow(opt.env || window.__env);
     const obs = [], items = [];
     const boss = opt.mode === 'boss';
+    const hurdles = [];
     let x = 1150;
     if (!boss) {
-      const gaps = opt.count;
-      for (let i = 0; i < gaps; i++) {
+      for (let i = 0; i < opt.count; i++) {
         obs.push({ x, type: T.obst[i % 2], qi: i, asked: false, done: false, jumpReady: false });
-        const a = x + OW + 210, b = x + GAP - 430;
-        const pat = i === 0 ? 'line' : ['line', 'arc', 'high', 'arc', 'line', 'high'][(i + opt.seed) % 6];
+        const o = x + OW;
+        // 당근 줄
+        const pat = ['line', 'arc', 'high', 'arc', 'line'][(i + opt.seed) % 5];
+        const a = o + 200;
         if (pat === 'line') for (let k = 0; k < 5; k++) items.push({ x: a + k * 62, y: 60, kind: 'c' });
         if (pat === 'arc') for (let k = 0; k < 6; k++) items.push({ x: a + k * 58, y: 60 + Math.sin((k / 5) * Math.PI) * 170, kind: 'c' });
         if (pat === 'high') for (let k = 0; k < 4; k++) items.push({ x: a + 20 + k * 58, y: 200, kind: 'c' });
-        if (i % 3 === 2) items.push({ x: b - 20, y: 250, kind: 's' });
-        if (i === 2 || i === 6) items.push({ x: (a + b) / 2, y: 300, kind: 'big' });
+        // 뛰어넘는 장애물 두 개 (위로 당근 무지개)
+        const h1 = o + 700, h2 = o + 1520;
+        const tall2 = i % 2 === 1;
+        hurdles.push({ x: h1, w: 60, h: 58, tall: false });
+        hurdles.push({ x: h2, w: 60, h: tall2 ? 104 : 58, tall: tall2 });
+        for (let k = 0; k < 5; k++) items.push({ x: h1 - 90 + k * 60, y: 90 + Math.sin((k / 4) * Math.PI) * 110, kind: 'c' });
+        items.push({ x: h2 + 30, y: tall2 ? 250 : 200, kind: 's' });
         // ❓ 선물 구름
-        const blockAt = { 1: 'carrots', 3: 'gold', 4: Math.random() < 0.5 ? 'star' : 'balloon', 6: ['carrots', 'star', 'balloon'][Math.floor(Math.random() * 3)] }[i];
-        if (blockAt) items.push({ x: b - 60, y: BLOCK_Y, kind: 'q', gives: blockAt, bump: 0 });
-        // 숨은 황금 당근 (꾹 눌러 높이 뛰어야 닿음)
-        if (i === 1) items.push({ x: a + 120, y: 430, kind: 'G', gi: 0 });
-        if (i === 5) items.push({ x: b - 10, y: 440, kind: 'G', gi: 2 });
-        x += GAP;
+        const gives = ['carrots', 'gold', Math.random() < 0.5 ? 'star' : 'balloon', ['carrots', 'star', 'balloon'][Math.floor(Math.random() * 3)], 'carrots'][i];
+        if (gives) items.push({ x: o + 1120, y: BLOCK_Y, kind: 'q', gives, bump: 0 });
+        if (i === 2) items.push({ x: o + 1880, y: 300, kind: 'big' });
+        // 숨은 황금 당근 (꾹 또는 2단 점프로)
+        if (i === 1) items.push({ x: o + 1330, y: 430, kind: 'G', gi: 0 });
+        if (i === 3) items.push({ x: o + 1860, y: 450, kind: 'G', gi: 2 });
+        x += SEG;
       }
     }
     if (opt.mode === 'bonus') {   // 보너스 길: 문제 없이 당근이 가득
@@ -75,18 +88,18 @@ const Runner = (() => {
         else items.push({ x: bx, y: 240, kind: 's' }, { x: bx + 70, y: 60, kind: 'c' });
       }
     }
-    const finishX = boss ? 1e9 : opt.mode === 'bonus' ? 7600 : obs[obs.length - 1].x + 1050;
+    const finishX = boss ? 1e9 : opt.mode === 'bonus' ? 7600 : obs[obs.length - 1].x + 2150;
     G = {
-      opt, T, env, obs, items, finishX, boss, scroll: 0, speed: 0, target: SPEED, state: 'run',
-      tori: { y: 0, vy: 0, air: false, holdT: 0, expr: 'normal', exprT: 0, pose: 'run0', poseT: 0, squash: 0 },
+      opt, T, env, obs, items, hurdles, finishX, boss, bumps: 0, scroll: 0, speed: 0, target: SPEED, state: 'run',
+      tori: { y: 0, vy: 0, air: false, dbl: false, holdT: 0, expr: 'normal', exprT: 0, pose: 'run0', poseT: 0, squash: 0 },
       hist: [], parts: [], amb: [], seasonal: [], time: 0, rescueT: 0, look: opt.look,
       power: null, streak: 0, streakT: 0, shake: 0, gold: [false, false, false],
       flag: 1, pole: null, poleHinted: false, tapHint: !!opt.tapHint,
       bossS: boss ? { hp: opt.hp, max: opt.hp, mood: 'angry', moodT: 0, x: 0, y: 0, shots: [], phaseT: 1.3, won: false, wind: 0 } : null,
       stars: Array.from({ length: 40 }, (_, i) => ({ x: (i * 157) % 1000 / 1000, y: (i * 89) % 520 / 1000, r: 1 + (i % 3), p: i })),
     };
-    for (let i = 0; i < 14; i++) G.amb.push(newAmb(true));
-    for (let i = 0; i < 18; i++) G.seasonal.push(newSeason(true));
+    for (let i = 0; i < 8; i++) G.amb.push(newAmb(true));
+    for (let i = 0; i < 10; i++) G.seasonal.push(newSeason(true));
     paused = false;
     last = performance.now();
     cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
@@ -99,9 +112,15 @@ const Runner = (() => {
     if (!G || paused) return;
     const t = G.tori;
     holding = true;
-    if ((G.state === 'run' || G.state === 'walk') && !t.air && !(G.power && G.power.k === 'balloon')) {
-      t.vy = 820 * u; t.air = true; t.holdT = 0; Sfx.jump();
-      if (G.tapHint) { G.tapHint = false; G.opt.onHint && G.opt.onHint(false); }
+    if ((G.state === 'run' || G.state === 'walk') && !(G.power && G.power.k === 'balloon')) {
+      if (!t.air) {
+        t.vy = 900 * u; t.air = true; t.dbl = false; t.holdT = 0; Sfx.jump();
+        if (G.tapHint) { G.tapHint = false; G.opt.onHint && G.opt.onHint(false); }
+      } else if (!t.dbl) {   // 2단 점프
+        t.dbl = true; t.vy = Math.max(t.vy, 0) * 0.2 + 780 * u; t.holdT = 0.14; Sfx.jump2();
+        ring(tx, gy - t.y - 60 * u); G.dbls = (G.dbls || 0) + 1;
+        G.opt.onDouble && G.opt.onDouble();
+      }
     }
   }
   function release() { holding = false; }
@@ -142,6 +161,7 @@ const Runner = (() => {
     if (!G || !G.boss) return;
     const B = G.bossS;
     B.shots.push({ t: 0, dmg, big: dmg >= 2 });
+    B.phaseT = 3.6; B.puffT = 0.35;
     G.state = 'run'; G.target = SPEED * 0.6;
     react('happy', 1.2); Sfx.jump();
   }
@@ -181,7 +201,7 @@ const Runner = (() => {
       let grav = 2700 * u;
       if (holding && t.vy > 0 && t.holdT < 0.28) { grav *= 0.35; t.holdT += dt; }
       t.vy -= grav * dt; t.y += t.vy * dt;
-      if (t.y <= 0) { t.y = 0; t.vy = 0; t.air = false; t.squash = 0.18; addDust(); }
+      if (t.y <= 0) { t.y = 0; t.vy = 0; t.air = false; t.dbl = false; t.squash = 0.18; addDust(); }
     }
     if (t.squash > 0) t.squash = Math.max(0, t.squash - dt * 0.9);
     if (t.exprT > 0) { t.exprT -= dt; if (t.exprT <= 0) t.expr = 'normal'; }
@@ -216,11 +236,6 @@ const Runner = (() => {
         const gi = g.items.find((it) => it.kind === 'G' && !it.got && it.x * u - g.scroll < W * 0.9);
         if (gi) { g.goldHinted = true; g.opt.onHint && g.opt.onHint('gold'); }
       }
-      // 처음 하는 친구: 높은 당근이 보이면 점프 안내
-      if (g.tapHint && !g.hintShown && g.state === 'run') {
-        const hi = g.items.find((it) => !it.got && it.kind === 'c' && it.y >= 150 && it.x * u - g.scroll < W * 0.95);
-        if (hi) { g.hintShown = true; g.opt.onHint && g.opt.onHint(true); }
-      }
       // 깃대
       if (g.state === 'run' && g.obs.every((o) => o.done)) {
         if (!g.poleHinted && me > g.finishX - 520) { g.poleHinted = true; g.opt.onHint && g.opt.onHint('pole'); }
@@ -251,6 +266,30 @@ const Runner = (() => {
         }
         if (g.rescueT > 3.0 && !g.ended) { g.ended = true; g.opt.onFinish({ gold: g.gold.slice(), pole: g.pole ? g.pole.tier : 1 }); }
       }
+    }
+    // 뛰어넘는 장애물
+    for (const hd of g.hurdles) {
+      if (hd.hit || hd.smashed) continue;
+      if (g.state === 'ask') continue;
+      if (hd.roll) hd.x -= 260 * dt;
+      if (me + 22 > hd.x && me - 22 < hd.x + hd.w && t.y / u < hd.h - 4) {
+        if (P && P.k === 'star') {   // 무지개 별: 부숴요
+          hd.smashed = true; Sfx.bonk(); burst(hd.x * u - g.scroll + hd.w * u / 2, gy - hd.h * u / 2, '#ffd43b', 18); g.shake = 0.12;
+        } else {
+          hd.hit = true; g.bumps++;
+          g.speed = Math.min(g.speed, 90); t.vy = 420 * u; t.air = true; t.dbl = true; t.holdT = 1;
+          react('oops', 0.9); Sfx.bump(); g.shake = 0.15;
+          g.opt.onBump && g.opt.onBump();
+        }
+      } else if (!hd.passed && me - 22 > hd.x + hd.w) {
+        hd.passed = true; g.cleared = (g.cleared || 0) + 1;
+        g.opt.onClear && g.opt.onClear(hd.tall);
+      }
+    }
+    // 처음 하는 친구: 장애물이 보이면 점프 안내
+    if (g.tapHint && !g.hintShown && g.state === 'run') {
+      const h = g.hurdles.find((hd) => !hd.passed && hd.x * u - g.scroll < W * 0.85);
+      if (h) { g.hintShown = true; g.opt.onHint && g.opt.onHint(true); }
     }
     // 행운: 판마다 한 번, 하늘을 가로질러요
     if (!g.boss && g.time > 9 && !g.flyer && Math.random() < dt * 0.15) {
@@ -306,7 +345,7 @@ const Runner = (() => {
     if (magnet && Math.random() < 0.7) g.parts.push({ x: tx - 30 * u, y: gy - t.y - (40 + Math.random() * 120) * u, vx: -200 - Math.random() * 100, vy: (Math.random() - .5) * 40, life: 0.5, max: 0.5, kind: 'spark', col: ['#ff8fa3', '#ffe066', '#8ce99a', '#74c0fc', '#b197fc'][Math.floor(Math.random() * 5)], size: 5 + Math.random() * 5 });
     for (const a of g.amb) { a.x += (a.vx - g.speed * 0.25) * dt; a.y += Math.sin(g.time * a.f + a.ph) * a.wob * dt; a.ph += dt; }
     g.amb = g.amb.filter((a) => a.x > -40);
-    while (g.amb.length < 14) g.amb.push(newAmb(false));
+    while (g.amb.length < 8) g.amb.push(newAmb(false));
     for (const s of g.seasonal) { s.x += (s.vx - g.speed * 0.4) * dt; s.y += s.vy * dt; s.rot += s.vr * dt; if (s.y > H + 20 || s.x < -30) Object.assign(s, newSeason(false)); }
   }
   function openBlock(it, x, y) {
@@ -350,6 +389,10 @@ const Runner = (() => {
       }
     }
     B.shots = B.shots.filter((s) => s.t < 1.2);
+    if (g.state === 'run' && B.puffT > 0) {
+      B.puffT -= dt;
+      if (B.puffT <= 0) { const me = (g.scroll + tx) / u; g.hurdles.push({ x: me + (W - tx) / u + 40, w: 56, h: 56, roll: true, puff: true }); Sfx.wind(); B.mood = 'angry'; }
+    }
     if (g.state === 'run') {
       B.phaseT -= dt;
       if (B.phaseT <= 0 && !B.shots.length) { g.state = 'ask'; g.target = 0; B.phaseT = 1.6; }
@@ -404,71 +447,190 @@ const Runner = (() => {
 
   /* ---------- 그리기 ---------- */
   function skyColors() {
-    const ph = G.env.phase, T = G.T;
-    if (ph === 'night') return ['#2b3175', '#6c5fc7'];
-    if (ph === 'sunset') return ['#ff9fae', '#ffe3c4'];
-    return T.sky;
+    const ph = G.env.phase;
+    if (ph === 'night') return ['#1f2766', '#4b4aa8', '#8e78d4'];
+    if (ph === 'sunset') return ['#ff8fab', '#ffbfa3', '#ffe6c4'];
+    return G.T.sky;
+  }
+  function ridge(L, scroll) {
+    const [col, col2, base0, amp0, per0, par, seed] = L;
+    const base = gy + base0 * u, amp = amp0 * u, per = per0 * u, off = scroll * par;
+    const gr = c.createLinearGradient(0, base - amp, 0, gy);
+    gr.addColorStop(0, col2); gr.addColorStop(0.55, col); gr.addColorStop(1, col);
+    c.fillStyle = gr; c.beginPath(); c.moveTo(-10, gy + 10);
+    let first = true;
+    for (let x = -10; x <= W + 12; x += 12) {
+      const v = (x + off) / per;
+      const y = base - amp * (0.55 + 0.28 * Math.sin(v + seed) + 0.17 * Math.sin(v * 2.3 + seed * 1.7));
+      if (first) { c.lineTo(x, y); first = false; } else c.lineTo(x, y);
+    }
+    c.lineTo(W + 12, gy + 10); c.closePath(); c.fill();
+  }
+  function drawBackground() {
+    const g = G, T = g.T, env = g.env;
+    const sc = skyColors();
+    const sk = c.createLinearGradient(0, 0, 0, gy);
+    sk.addColorStop(0, sc[0]); sk.addColorStop(0.55, sc[1]); sk.addColorStop(1, sc[2]);
+    c.fillStyle = sk; c.fillRect(-20, -20, W + 40, H + 40);
+    // 해·달
+    const sx = W * 0.8, sy = H * 0.2;
+    if (env.phase === 'night') {
+      for (const s of g.stars) { c.globalAlpha = 0.45 + 0.55 * Math.abs(Math.sin(g.time * 1.6 + s.p)); c.fillStyle = '#fff8d6'; circle(s.x * W, s.y * H, s.r * u * 1.3); }
+      c.globalAlpha = 1;
+      glow(sx, sy, 170 * u, 'rgba(255,246,200,.35)');
+      c.fillStyle = '#fff6d6'; circle(sx, sy, 46 * u);
+      c.fillStyle = 'rgba(230,214,170,.55)'; circle(sx - 14 * u, sy - 8 * u, 9 * u); circle(sx + 12 * u, sy + 12 * u, 7 * u); circle(sx + 16 * u, sy - 16 * u, 5 * u);
+    } else {
+      const sunY = env.phase === 'sunset' ? gy - 150 * u : sy;
+      glow(sx, sunY, 220 * u, env.phase === 'sunset' ? 'rgba(255,170,120,.55)' : 'rgba(255,246,190,.75)');
+      if (T.sun || env.phase === 'sunset') { c.fillStyle = env.phase === 'sunset' ? '#ffb070' : '#fff1a8'; circle(sx, sunY, 52 * u); c.fillStyle = 'rgba(255,255,255,.55)'; circle(sx - 14 * u, sunY - 14 * u, 18 * u); }
+    }
+    // 빛줄기
+    if (T.rays && env.phase === 'day') {
+      c.save(); c.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < 5; i++) {
+        const sw = Math.sin(g.time * 0.4 + i) * 20 * u;
+        c.fillStyle = `rgba(255,250,220,${0.05 + (i % 2) * 0.03})`;
+        c.beginPath(); c.moveTo(W * 0.92 + i * 30 * u, -20); c.lineTo(W * 0.92 + i * 30 * u + 60 * u, -20);
+        c.lineTo(W * (0.15 + i * 0.13) + sw + 120 * u, gy); c.lineTo(W * (0.15 + i * 0.13) + sw, gy); c.closePath(); c.fill();
+      }
+      c.restore();
+    }
+    if (T.rainbow) drawRainbow(W * 0.6 - g.scroll * 0.02, gy - 60 * u, 440 * u);
+    // 구름 (아래 그림자 있는 뭉게구름)
+    for (let i = 0; i < 6; i++) {
+      const span = W + 500 * u;
+      const k = (0.7 + (i % 3) * 0.3) * u;
+      const x = ((i * 331 * u - g.scroll * (0.04 + (i % 3) * 0.02) - g.time * 6 * u) % span + span) % span - 250 * u;
+      cloud(x, H * (0.08 + (i % 4) * 0.07), k, env.phase === 'night');
+    }
+    // 산 / 바다
+    if (T.sea) {
+      ridge(T.ridges[0], g.scroll);
+      const hz = gy - 210 * u;
+      const sea = c.createLinearGradient(0, hz, 0, gy);
+      sea.addColorStop(0, '#7fd0f5'); sea.addColorStop(0.5, '#4fb6ea'); sea.addColorStop(1, '#3aa3dc');
+      c.fillStyle = sea; c.fillRect(0, hz, W, gy - hz + 4);
+      c.fillStyle = 'rgba(255,255,255,.55)'; c.fillRect(0, hz, W, 3 * u);
+      for (let row = 0; row < 4; row++) {
+        const yy = hz + (30 + row * 42) * u, off = ((g.scroll * (0.15 + row * 0.08) + g.time * (12 + row * 6)) % (160 * u));
+        c.fillStyle = `rgba(255,255,255,${0.25 + row * 0.12})`;
+        for (let x = -off; x < W + 160 * u; x += 160 * u) { c.beginPath(); c.ellipse(x + (row % 2) * 70 * u, yy, (26 + row * 8) * u, 2.6 * u, 0, 0, 7); c.fill(); }
+      }
+      // 반짝이는 물결
+      for (let i = 0; i < 10; i++) { const a = Math.max(0, Math.sin(g.time * 3 + i * 1.7)); if (a < 0.6) continue; c.globalAlpha = a - 0.4; drawStar((i * 157 + 40) % W, hz + (20 + (i * 37) % 160) * u, 6 * u, '#fff', 0); c.globalAlpha = 1; }
+      // 젖은 모래 + 파도 거품
+      const foam = gy - 14 * u + Math.sin(g.time * 1.6) * 4 * u;
+      c.fillStyle = 'rgba(255,255,255,.85)'; c.beginPath(); c.moveTo(0, gy);
+      for (let x = 0; x <= W + 30; x += 30) c.lineTo(x, foam + Math.sin(x / 40 + g.time * 2 + g.scroll / 60) * 4 * u);
+      c.lineTo(W + 30, gy + 4); c.lineTo(0, gy + 4); c.fill();
+    } else {
+      T.ridges.forEach((L) => ridge(L, g.scroll));
+    }
+    // 가운데 장식
+    const midSpan = 300 * u;
+    for (let i = -1; i < W / midSpan + 2; i++) {
+      const n = Math.floor(g.scroll * 0.55 / midSpan) + i;
+      midDeco(T.mid, n * midSpan - g.scroll * 0.55 + ((n * 97) % 110) * u, gy - 4 * u, n);
+    }
+    // 땅
+    const winter = env.season === 'winter';
+    const sg = c.createLinearGradient(0, gy, 0, H);
+    sg.addColorStop(0, T.soil[0]); sg.addColorStop(1, T.soil[1]);
+    c.fillStyle = sg; c.fillRect(0, gy, W, H - gy + 20);
+    // 흙 줄무늬·조약돌
+    c.fillStyle = 'rgba(110,83,99,.07)';
+    const band = 260 * u, bo = g.scroll % band;
+    for (let x = -bo - band; x < W + band; x += band) { c.beginPath(); c.ellipse(x + band / 2, gy + 74 * u, band * 0.42, 9 * u, 0, 0, 7); c.fill(); }
+    const stp = 120 * u, off = g.scroll % stp;
+    for (let x = -off; x < W + stp; x += stp) {
+      const k = Math.floor((x + g.scroll) / stp) % 3;
+      c.fillStyle = 'rgba(110,83,99,.12)'; c.beginPath(); c.ellipse(x + 40 * u, gy + (44 + k * 22) * u, (9 + k * 3) * u, (5 + k) * u, 0, 0, 7); c.fill();
+      c.fillStyle = 'rgba(255,255,255,.35)'; c.beginPath(); c.ellipse(x + 37 * u, gy + (42 + k * 22) * u, 4 * u, 2 * u, 0, 0, 7); c.fill();
+    }
+    // 풀 띠
+    const gg = c.createLinearGradient(0, gy - 14 * u, 0, gy + 18 * u);
+    gg.addColorStop(0, winter ? '#ffffff' : T.grass[0]); gg.addColorStop(1, winter ? '#dbe9f5' : T.grass[1]);
+    c.fillStyle = gg; c.fillRect(-10, gy - 8 * u, W + 20, 20 * u);
+    const bs = 40 * u, boff = g.scroll % bs;
+    for (let x = -boff; x < W + bs; x += bs) { c.beginPath(); c.arc(x + bs / 2, gy + 11 * u, bs / 2, 0, Math.PI); c.fill(); }
+    // 풀잎
+    if (!T.sea) {
+      c.fillStyle = winter ? '#ffffff' : T.grass[0];
+      const ts = 16 * u, to = g.scroll % ts;
+      for (let x = -to; x < W + ts; x += ts) {
+        const hh = (6 + (Math.floor((x + g.scroll) / ts) % 3) * 3) * u;
+        c.beginPath(); c.moveTo(x, gy - 7 * u); c.quadraticCurveTo(x + ts * 0.3, gy - 7 * u - hh, x + ts * 0.6, gy - 7 * u - hh * 1.1); c.lineTo(x + ts * 0.5, gy - 7 * u); c.fill();
+      }
+    }
+    c.fillStyle = 'rgba(255,255,255,.35)'; c.fillRect(0, gy - 8 * u, W, 2 * u);
+    // 땅 위 작은 꽃
+    if (!winter && !T.sea) {
+      const fs = 170 * u, fo = g.scroll % fs;
+      for (let x = -fo; x < W + fs; x += fs) {
+        const k = Math.floor((x + g.scroll) / fs);
+        const col = ['#ffa8c5', '#fff3a3', '#d0bfff', '#ffffff', '#a5d8ff'][((k % 5) + 5) % 5];
+        tinyFlower(x + 30 * u, gy - 9 * u, col);
+        if (k % 2) tinyFlower(x + 52 * u, gy - 6 * u, '#ffffff');
+      }
+    }
+    // 밤·노을 색 덧칠 (배경만)
+    if (env.phase === 'night') { c.fillStyle = 'rgba(36,34,110,.30)'; c.fillRect(-20, -20, W + 40, H + 40); }
+    else if (env.phase === 'sunset') { c.fillStyle = 'rgba(255,130,90,.10)'; c.fillRect(-20, -20, W + 40, H + 40); }
+  }
+  function glow(x, y, r, col) {
+    const gr = c.createRadialGradient(x, y, 0, x, y, r);
+    gr.addColorStop(0, col); gr.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = gr; c.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  function tinyFlower(x, y, col) {
+    c.fillStyle = col;
+    for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2; circle(x + Math.cos(a) * 4 * u, y + Math.sin(a) * 4 * u, 3 * u); }
+    c.fillStyle = '#ffd43b'; circle(x, y, 2.4 * u);
+  }
+  function drawForeground() {
+    const g = G, T = g.T;
+    const fs = 210 * u, fo = (g.scroll * 1.25) % fs;
+    for (let x = -fo - fs; x < W + fs; x += fs) {
+      const k = Math.floor((x + g.scroll * 1.25) / fs);
+      if (((k % 3) + 3) % 3 === 1) continue;
+      const bx = x + ((k * 53) % 90) * u, by = H + 6;
+      c.save();
+      if (T.fore === 'tuft') {
+        c.fillStyle = g.env.season === 'winter' ? 'rgba(235,242,250,.95)' : T.grass[1];
+        for (let i = 0; i < 6; i++) {
+          const a = -0.9 + i * 0.36, hh = (46 + (i % 3) * 16) * u;
+          c.beginPath(); c.moveTo(bx + i * 8 * u, by); c.quadraticCurveTo(bx + i * 8 * u + Math.sin(a) * hh * 0.4, by - hh * 0.6, bx + i * 8 * u + Math.sin(a) * hh * 0.7 + Math.sin(g.time * 2 + i) * 3 * u, by - hh); c.lineTo(bx + i * 8 * u + 9 * u, by); c.fill();
+        }
+      } else if (T.fore === 'shell') {
+        c.fillStyle = 'rgba(255,255,255,.9)'; c.beginPath(); c.ellipse(bx, by - 18 * u, 40 * u, 12 * u, 0, 0, 7); c.fill();
+        drawStar(bx + 20 * u, by - 30 * u, 14 * u, '#ffa94d', 0.3);
+      } else {
+        for (let i = 0; i < 5; i++) drawStar(bx + i * 16 * u, by - (20 + (i % 2) * 18) * u, 7 * u, ['#ffe066', '#ffffff', '#c5f6fa'][i % 3], g.time + i);
+      }
+      c.restore();
+    }
+    // 가장자리 살짝 어둡게
+    const vg = c.createRadialGradient(W / 2, H * 0.45, Math.min(W, H) * 0.45, W / 2, H * 0.45, Math.max(W, H) * 0.8);
+    vg.addColorStop(0, 'rgba(60,30,70,0)'); vg.addColorStop(1, 'rgba(60,30,70,.16)');
+    c.fillStyle = vg; c.fillRect(-20, -20, W + 40, H + 40);
   }
   function draw() {
     const g = G, T = g.T, env = g.env;
     c.save();
     if (g.shake > 0) c.translate((Math.random() - .5) * 14 * u * g.shake * 3, (Math.random() - .5) * 14 * u * g.shake * 3);
-    // 하늘
-    const skc = skyColors();
-    const sk = c.createLinearGradient(0, 0, 0, gy);
-    sk.addColorStop(0, skc[0]); sk.addColorStop(1, skc[1]);
-    c.fillStyle = sk; c.fillRect(-20, -20, W + 40, H + 40);
-    if (env.phase === 'night') {
-      for (const s of g.stars) { c.globalAlpha = 0.5 + 0.5 * Math.sin(g.time * 2 + s.p); c.fillStyle = '#fff8d6'; circle(s.x * W, s.y * H, s.r * u * 1.4); }
-      c.globalAlpha = 1;
-      c.fillStyle = 'rgba(255,248,214,.25)'; circle(W * 0.82, H * 0.18, 80 * u);
-      c.fillStyle = '#fff3bf'; circle(W * 0.82, H * 0.18, 48 * u); c.fillStyle = skc[0]; circle(W * 0.82 + 22 * u, H * 0.18 - 12 * u, 42 * u);
-    } else if (env.phase === 'sunset') {
-      c.fillStyle = 'rgba(255,170,120,.35)'; circle(W * 0.8, gy - 120 * u, 140 * u); c.fillStyle = '#ffa94d'; circle(W * 0.8, gy - 120 * u, 78 * u);
-    } else if (T.sun) { c.fillStyle = 'rgba(255,230,120,.35)'; circle(W * 0.83, H * 0.2, 90 * u); c.fillStyle = '#ffe066'; circle(W * 0.83, H * 0.2, 56 * u); }
-    if (T.rainbow) drawRainbow(W * 0.62 - g.scroll * 0.03, gy - 40 * u, 420 * u);
-    for (let i = 0; i < 5; i++) {
-      const span = W + 400 * u;
-      const x = ((i * 397 * u - g.scroll * 0.08) % span + span) % span - 200 * u;
-      cloud(x, H * (0.1 + (i % 3) * 0.09), (0.8 + (i % 2) * 0.4) * u, env.phase === 'night' ? 'rgba(220,215,255,.35)' : 'rgba(255,255,255,.92)');
-    }
-    // 먼 풍경
-    if (T.sea) {
-      c.fillStyle = T.far[0]; c.fillRect(0, gy - 200 * u, W, 210 * u);
-      c.strokeStyle = 'rgba(255,255,255,.85)'; c.lineWidth = 5 * u; c.lineCap = 'round';
-      for (let row = 0; row < 3; row++) {
-        c.beginPath();
-        const yy = gy - (170 - row * 55) * u, off = (g.scroll * (0.2 + row * 0.1) + g.time * 30) % (120 * u);
-        for (let x = -off; x < W + 120 * u; x += 120 * u) { c.moveTo(x, yy); c.quadraticCurveTo(x + 30 * u, yy - 10 * u, x + 60 * u, yy); }
-        c.stroke();
-      }
-    } else {
-      hills(g.scroll * 0.18, gy - 150 * u, 130 * u, 520 * u, T.far[0]);
-      hills(g.scroll * 0.3 + 200 * u, gy - 70 * u, 90 * u, 380 * u, T.far[1]);
-    }
-    const midSpan = 330 * u;
-    for (let i = -1; i < W / midSpan + 2; i++) {
-      const n = Math.floor(g.scroll * 0.55 / midSpan) + i;
-      midDeco(T.mid, n * midSpan - g.scroll * 0.55 + ((n * 97) % 120) * u, gy - 6 * u, n);
-    }
-    // 땅
-    c.fillStyle = T.soil; c.fillRect(0, gy, W, H - gy + 20);
-    c.fillStyle = T.soil2;
-    const stp = 90 * u, off = g.scroll % stp;
-    for (let x = -off; x < W; x += stp) { c.beginPath(); c.ellipse(x + 30 * u, gy + 50 * u, 16 * u, 7 * u, 0, 0, Math.PI * 2); c.fill(); }
-    c.fillStyle = env.season === 'winter' ? '#f8f9fa' : T.top; roundRect(-10, gy - 10 * u, W + 20, 26 * u, 12 * u); c.fill();
-    c.fillStyle = env.season === 'winter' ? '#e7f5ff' : T.top2;
-    const bs = 46 * u, boff = g.scroll % bs;
-    for (let x = -boff; x < W + bs; x += bs) { c.beginPath(); c.arc(x, gy + 14 * u, 10 * u, 0, Math.PI); c.fill(); }
-    // 밤·노을 색 덧칠 (배경만)
-    if (env.phase === 'night') { c.fillStyle = 'rgba(40,40,110,.28)'; c.fillRect(-20, -20, W + 40, H + 40); }
-    else if (env.phase === 'sunset') { c.fillStyle = 'rgba(255,140,90,.10)'; c.fillRect(-20, -20, W + 40, H + 40); }
+    drawBackground();
 
     if (!g.boss) drawFinish();
     for (const o of g.obs) {
       const sx = o.x * u - g.scroll;
       if (sx > W + 200 || sx < -300) continue;
       drawObstacle(o.type, sx, gy, OW * u);
+    }
+    for (const hd of g.hurdles) {
+      if (hd.smashed) continue;
+      const sx = hd.x * u - g.scroll; if (sx > W + 120 || sx < -160) continue;
+      drawHurdle(hd, sx, gy);
     }
     // 아이템
     for (const it of g.items) {
@@ -508,7 +670,7 @@ const Runner = (() => {
     }
     // 보스
     if (g.boss) drawBoss();
-    // 토리
+    // 포포
     drawTori();
     // 조각
     for (const p of g.parts) {
@@ -524,6 +686,7 @@ const Runner = (() => {
     }
     for (const a of g.amb) drawAmb(g.env.phase === 'night' && g.T.amb === 'butterfly' ? 'firefly' : g.T.amb, a);
     drawFlyer();
+    drawForeground();
     drawSeason();
     // 파워업 남은 시간
     if (g.power) {
@@ -607,10 +770,11 @@ const Runner = (() => {
   function roundRect(x, y, w, h, r) { r = Math.min(r, Math.abs(w) / 2, h / 2); c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
   function ol(w = 3.4) { c.strokeStyle = OLc; c.lineWidth = w * u; c.lineJoin = 'round'; c.lineCap = 'round'; c.stroke(); }
   function shadow(x, y, r) { c.fillStyle = 'rgba(110,83,99,.16)'; c.beginPath(); c.ellipse(x, y + 2 * u, r, r * 0.22, 0, 0, Math.PI * 2); c.fill(); }
-  function cloud(x, y, k, col) {
-    c.fillStyle = col;
-    c.beginPath(); c.arc(x, y, 26 * k, 0, Math.PI * 2); c.arc(x + 32 * k, y - 14 * k, 34 * k, 0, Math.PI * 2); c.arc(x + 68 * k, y, 26 * k, 0, Math.PI * 2); c.fill();
-    c.fillRect(x, y - 2 * k, 68 * k, 26 * k);
+  function cloud(x, y, k, night) {
+    const puff = (dy, col) => { c.fillStyle = col; c.beginPath(); c.arc(x, y + dy, 26 * k, 0, 7); c.arc(x + 30 * k, y - 16 * k + dy, 34 * k, 0, 7); c.arc(x + 64 * k, y - 6 * k + dy, 28 * k, 0, 7); c.arc(x + 92 * k, y + 4 * k + dy, 20 * k, 0, 7); c.fill(); c.beginPath(); c.ellipse(x + 46 * k, y + 14 * k + dy, 58 * k, 14 * k, 0, 0, 7); c.fill(); };
+    puff(8 * k, night ? 'rgba(130,120,200,.35)' : 'rgba(170,190,230,.35)');
+    puff(0, night ? 'rgba(220,215,255,.45)' : 'rgba(255,255,255,.96)');
+    if (!night) { c.fillStyle = 'rgba(255,255,255,1)'; c.beginPath(); c.arc(x + 24 * k, y - 22 * k, 14 * k, 0, 7); c.fill(); }
   }
   function hills(off, y, h, w, col) {
     c.fillStyle = col; c.beginPath(); c.moveTo(0, gy + 10);
@@ -667,6 +831,47 @@ const Runner = (() => {
       c.fillText('?', x, y + 6 * u); c.textAlign = 'left'; c.textBaseline = 'alphabetic';
     } else { c.fillStyle = '#c9bfd6'; circle(x - 10 * u, y + 6 * u, 3 * u); circle(x + 10 * u, y + 6 * u, 3 * u); }
     c.restore();
+  }
+  const HCOL = { m: ['#7bd88a', '#e0b07c'], k: ['#5cb86e', '#c49770'], e: ['#ff9fb0', '#ffd59a'], r: ['#ffc2e0', '#c9b6ff'] };
+  function drawHurdle(hd, x, y) {
+    const w = hd.w * u, h = hd.h * u;
+    const [bush, crate] = HCOL[G.opt.world] || HCOL.m;
+    c.save();
+    shadow(x + w / 2, y, w * 0.6);
+    if (hd.puff) {   // 보스가 굴리는 심술 구름 공
+      c.translate(x + w / 2, y - h / 2); c.rotate(-G.time * 5);
+      c.fillStyle = '#c3c9d8'; c.beginPath(); for (let i = 0; i < 7; i++) { const a = i / 7 * Math.PI * 2; c.arc(Math.cos(a) * h * 0.28, Math.sin(a) * h * 0.28, h * 0.26, 0, 7); } c.fill();
+      c.beginPath(); c.arc(0, 0, h * 0.36, 0, 7); c.fill(); ol(2.6);
+      c.rotate(G.time * 5);
+      c.strokeStyle = OLc; c.lineWidth = 3 * u; c.beginPath(); c.moveTo(-12 * u, -8 * u); c.lineTo(-4 * u, -4 * u); c.moveTo(12 * u, -8 * u); c.lineTo(4 * u, -4 * u); c.stroke();
+      c.fillStyle = OLc; circle(-7 * u, 2 * u, 3 * u); circle(7 * u, 2 * u, 3 * u);
+      c.restore(); return;
+    }
+    if (hd.tall) {   // 상자 두 개
+      for (let k = 0; k < 2; k++) {
+        const bh = h / 2, by = y - bh * (k + 1), bw = w - k * 6 * u, bx = x + k * 3 * u;
+        const gr = c.createLinearGradient(0, by, 0, by + bh); gr.addColorStop(0, '#fff8ee'); gr.addColorStop(0.15, crate); gr.addColorStop(1, crate);
+        c.fillStyle = gr; roundRect(bx, by, bw, bh - 2 * u, 8 * u); c.fill(); ol(3);
+        c.strokeStyle = 'rgba(110,83,99,.25)'; c.lineWidth = 2.4 * u; c.beginPath(); c.moveTo(bx + 6 * u, by + bh * 0.5); c.lineTo(bx + bw - 6 * u, by + bh * 0.5); c.stroke();
+        drawStar(bx + bw / 2, by + bh / 2 - 1 * u, 9 * u, '#fff3a3', 0);
+      }
+    } else {   // 동글 덤불 (테두리 있게)
+      const shape = (e) => { c.beginPath(); c.arc(x + w * 0.22, y - h * 0.38, h * 0.38 + e, 0, 7); c.arc(x + w * 0.55, y - h * 0.58, h * 0.46 + e, 0, 7); c.arc(x + w * 0.85, y - h * 0.36, h * 0.36 + e, 0, 7); c.fill(); c.beginPath(); c.rect(x + w * 0.05 - e, y - h * 0.4, w * 0.9 + e * 2, h * 0.4 + e * 0.2); c.fill(); };
+      c.fillStyle = OLc; shape(3 * u);
+      const bg = c.createLinearGradient(0, y - h, 0, y); bg.addColorStop(0, '#ffffff'); bg.addColorStop(0.25, bush); bg.addColorStop(1, bush);
+      c.fillStyle = bg; shape(0);
+      c.fillStyle = 'rgba(255,255,255,.35)'; c.beginPath(); c.ellipse(x + w * 0.45, y - h * 0.78, h * 0.18, h * 0.09, -0.4, 0, 7); c.fill();
+      c.fillStyle = '#fff'; circle(x + w * 0.3, y - h * 0.5, 4.5 * u); circle(x + w * 0.72, y - h * 0.62, 4.5 * u);
+      c.fillStyle = '#ffd43b'; circle(x + w * 0.3, y - h * 0.5, 2 * u); circle(x + w * 0.72, y - h * 0.62, 2 * u);
+    }
+    if (hd.hit) { c.globalAlpha = 0.5; }
+    c.restore();
+  }
+  function ring(x, y) {
+    for (let i = 0; i < 12; i++) {
+      const a = i / 12 * Math.PI * 2;
+      G.parts.push({ x, y, vx: Math.cos(a) * 220, vy: Math.sin(a) * 120, life: 0.45, max: 0.45, kind: 'spark', col: ['#fff3a3', '#ffc9de', '#c5f6fa'][i % 3], size: 5 });
+    }
   }
   function sleepy(x, y, k = 1) {
     c.strokeStyle = OLc; c.lineWidth = 3 * u * k; c.lineCap = 'round';
@@ -739,22 +944,30 @@ const Runner = (() => {
     c.save();
     const winter = G.env.season === 'winter';
     switch (kind) {
-      case 'bush':
-        c.fillStyle = n % 2 ? '#8ce99a' : '#69db7c';
+      case 'bush': {
+        const base = n % 2 ? '#8fdc93' : '#74d27e';
+        c.fillStyle = 'rgba(60,120,70,.18)'; c.beginPath(); c.ellipse(x + 34 * u, y, 60 * u, 8 * u, 0, 0, 7); c.fill();
+        c.fillStyle = base;
         c.beginPath(); c.arc(x, y - 22 * u, 28 * u, 0, 7); c.arc(x + 34 * u, y - 32 * u, 34 * u, 0, 7); c.arc(x + 68 * u, y - 20 * u, 26 * u, 0, 7); c.fill();
+        c.fillStyle = 'rgba(255,255,255,.28)'; c.beginPath(); c.arc(x + 26 * u, y - 46 * u, 14 * u, 0, 7); c.arc(x - 6 * u, y - 32 * u, 9 * u, 0, 7); c.fill();
         if (winter) { c.fillStyle = '#fff'; c.beginPath(); c.ellipse(x + 34 * u, y - 58 * u, 30 * u, 10 * u, 0, 0, 7); c.fill(); }
-        else if (n % 3 === 0) { c.fillStyle = '#ffa8c5'; circle(x + 20 * u, y - 44 * u, 7 * u); c.fillStyle = '#fff3a3'; circle(x + 50 * u, y - 52 * u, 7 * u); }
+        else if (n % 3 === 0) { tinyFlower(x + 20 * u, y - 40 * u, '#ffa8c5'); tinyFlower(x + 52 * u, y - 50 * u, '#fff3a3'); }
         break;
+      }
       case 'tree': {
-        const leaf = G.env.season === 'autumn' ? (n % 2 ? '#ffa94d' : '#ff8787') : (n % 2 ? '#69db7c' : '#51cf66');
-        c.fillStyle = '#a87b5a'; c.fillRect(x + 22 * u, y - 120 * u, 18 * u, 120 * u);
+        const leaf = G.env.season === 'autumn' ? (n % 2 ? '#ffb070' : '#ff9a8a') : (n % 2 ? '#6fd17f' : '#54c06c');
+        c.fillStyle = 'rgba(40,90,60,.18)'; c.beginPath(); c.ellipse(x + 31 * u, y, 50 * u, 8 * u, 0, 0, 7); c.fill();
+        c.fillStyle = '#a87b5a'; roundRect(x + 22 * u, y - 120 * u, 18 * u, 122 * u, 6 * u); c.fill();
         c.fillStyle = leaf;
         c.beginPath(); c.arc(x + 31 * u, y - 140 * u, 56 * u, 0, 7); c.arc(x - 6 * u, y - 112 * u, 36 * u, 0, 7); c.arc(x + 66 * u, y - 112 * u, 36 * u, 0, 7); c.fill();
+        c.fillStyle = 'rgba(0,60,30,.12)'; c.beginPath(); c.ellipse(x + 31 * u, y - 96 * u, 60 * u, 16 * u, 0, 0, 7); c.fill();
+        c.fillStyle = 'rgba(255,255,255,.25)'; c.beginPath(); c.arc(x + 14 * u, y - 168 * u, 20 * u, 0, 7); c.fill();
         if (winter) { c.fillStyle = '#fff'; c.beginPath(); c.ellipse(x + 31 * u, y - 186 * u, 40 * u, 12 * u, 0, 0, 7); c.fill(); }
         else if (n % 3 === 0) { c.fillStyle = '#ff6b6b'; circle(x + 10 * u, y - 130 * u, 7 * u); circle(x + 50 * u, y - 150 * u, 7 * u); }
         break;
       }
       case 'palm':
+        if (n % 2) { c.fillStyle = 'rgba(255,255,255,.7)'; drawStar(x + 10 * u, y - 4 * u, 9 * u, '#ff8fa3', 0.3); break; }
         c.strokeStyle = '#c08a5b'; c.lineWidth = 14 * u; c.lineCap = 'round';
         c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + 20 * u, y - 80 * u, x + 8 * u, y - 160 * u); c.stroke();
         c.fillStyle = '#51cf66';
@@ -779,7 +992,7 @@ const Runner = (() => {
     c.fillStyle = '#ffd43b'; circle(fx, top - 6 * u, 15 * u); ol(3);
     // 높이 눈금 (별)
     [[250, '#ffd43b'], [170, '#ffc9de'], [90, '#a5d8ff']].forEach(([h, col]) => drawStar(fx - 26 * u, gy - (h + 100) * u, 9 * u, col, 0));
-    // 깃발 (토리가 미끄러져 내려오면 같이 내려옴)
+    // 깃발 (포포가 미끄러져 내려오면 같이 내려옴)
     const fy = top + 12 * u + (1 - g.flag) * (POLE_H - 90) * u * (g.state === 'run' ? 0 : 1);
     c.fillStyle = '#ff8fb6'; c.beginPath(); c.moveTo(fx + 7 * u, fy); c.lineTo(fx + 86 * u, fy + 30 * u); c.lineTo(fx + 7 * u, fy + 60 * u); c.closePath(); c.fill(); ol(3);
     drawStar(fx + 36 * u, fy + 30 * u, 12 * u, '#fff', 0);

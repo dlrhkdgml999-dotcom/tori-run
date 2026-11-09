@@ -1,4 +1,4 @@
-/* 토리의 반짝 달리기 — 화면들 */
+/* 포포의 반짝 모험 — 화면들 */
 'use strict';
 const UI = (() => {
   const app = $('#app');
@@ -60,8 +60,8 @@ const UI = (() => {
   ACT.closeModal = closeModal;
 
   /* ---------- 첫 화면 ---------- */
-  const TORI_LINES = ['안녕! 나는 토리야!', '같이 달리자!', '당근 먹고 싶어!', '오늘 옷 예쁘지?', '히히, 간지러워!', '친구들을 구하러 가자!', '별을 모아 볼까?', '사진 찍을래?', '황금 당근 찾으러 가자!'];
-  const FRIEND_LINES = ['안녕!', '오늘도 달리자!', '토리 옷 예쁘다!', '당근 냠냠!', '구해 줘서 고마워!', '같이 사진 찍자!', '나도 꾸며 줘!', '심술 구름 혼내 주자!', '헤헤 💕'];
+  const TORI_LINES = ['안녕! 나는 포포야!', '히히힝~ 신난다!', '내 갈기 예쁘지?', '2단 점프 할 줄 알아?', '같이 달리자!', '당근 먹고 싶어!', '오늘 옷 예쁘지?', '히히, 간지러워!', '친구들을 구하러 가자!', '별을 모아 볼까?', '사진 찍을래?', '황금 당근 찾으러 가자!'];
+  const FRIEND_LINES = ['안녕!', '오늘도 달리자!', '포포 옷 예쁘다!', '당근 냠냠!', '구해 줘서 고마워!', '같이 사진 찍자!', '나도 꾸며 줘!', '심술 구름 혼내 주자!', '헤헤 💕'];
   let idleT = 0, chatT = 0;
   function home() {
     const s = S();
@@ -79,9 +79,11 @@ const UI = (() => {
     const fall = env.season === 'summer' ? '' : Array.from({ length: 12 }, (_, i) => `<i class="fall ${env.season}" style="left:${(i * 83) % 100}%;animation-delay:${-(i * 1.7) % 12}s;animation-duration:${9 + (i % 4) * 2}s"></i>`).join('');
     const badges = [0, 1, 2, 3].map((i) => `<span class="bdg ${(s.boss || {})[i] ? 'on' : ''}">${ART.badge(i, !!(s.boss || {})[i])}</span>`).join('');
     const journeyLabel = s.ended ? '🌈 여정 계속하기' : (Object.keys(s.stars).length ? '🗺️ 여정 이어 가기' : '🗺️ 여정 떠나기');
-    app.innerHTML = `<div class="screen bg home ${night ? 'night' : ''}"><div class="deco"><i class="cl c1">${cloudSVG}</i><i class="cl c2">${cloudSVG}</i><i class="cl c3">${cloudSVG}</i><b class="sp s1">✦</b><b class="sp s2">✦</b><b class="sp s3">♥</b><b class="sp s4">✦</b>${fall}</div>
+    const land = `<svg class="land" viewBox="0 0 1200 300" preserveAspectRatio="none"><defs><linearGradient id="hl1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${night ? '#8f86d6' : '#dff3ff'}"/><stop offset="1" stop-color="${night ? '#6f66b8' : '#c7e6f7'}"/></linearGradient><linearGradient id="hl2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${night ? '#7d8fd1' : '#d8f5d4'}"/><stop offset="1" stop-color="${night ? '#6273b8' : '#b5e8b5'}"/></linearGradient></defs>
+      <path d="M0 140 Q150 60 320 120 T640 100 T960 110 T1200 80 V300 H0Z" fill="url(#hl1)"/><path d="M0 210 Q200 140 420 200 T840 180 T1200 190 V300 H0Z" fill="url(#hl2)"/></svg>`;
+    app.innerHTML = `<div class="screen bg home ${night ? 'night' : ''}"><div class="deco">${land}<i class="cl c1">${cloudSVG}</i><i class="cl c2">${cloudSVG}</i><i class="cl c3">${cloudSVG}</i><b class="sp s1">✦</b><b class="sp s2">✦</b><b class="sp s3">♥</b><b class="sp s4">✦</b>${fall}</div>
       <div class="topbar" style="width:100%"><button class="iconbtn" data-a="settings" aria-label="설정">⚙️</button><button class="iconbtn" data-a="help" aria-label="놀이 방법">❓</button><div class="title"></div><button class="iconbtn rel" data-a="go" data-to="stamps" aria-label="칭찬 도장">🏅</button><button class="iconbtn" data-a="go" data-to="album" aria-label="앨범">🖼️</button>${carrotsHTML()}</div>
-      <div class="logo">토리의 반짝 달리기<small>⭐ ${nStars}/36 · 🐾 ${nFr}/12 · <span class="gc">🥕</span> 황금 ${nGold}/36</small></div>
+      <div class="logo">포포의 반짝 모험<small>⭐ ${nStars}/36 · 🐾 ${nFr}/12 · <span class="gc">🥕</span> 황금 ${nGold}/36</small></div>
       <div class="badgeRow">${badges}</div>
       <div class="homeMain">
         <div class="stageTori">
@@ -92,7 +94,7 @@ const UI = (() => {
         </div>
         <div class="homeSide">
           <button class="btn pink big jbtn" data-a="go" data-to="map">${journeyLabel}<small class="nextGoal">${nextGoal()}</small></button>
-          <button class="btn lav rel" data-a="go" data-to="closet"><span class="em">👗</span> 토리 옷방${affordableNew() ? '<span class="dot"></span>' : ''}</button>
+          <button class="btn lav rel" data-a="go" data-to="closet"><span class="em">👗</span> 포포 옷방${affordableNew() ? '<span class="dot"></span>' : ''}</button>
           <button class="btn mint" data-a="go" data-to="friends"><span class="em">🐾</span> 친구들</button>
           <button class="btn sky" data-a="go" data-to="studio"><span class="em">📸</span> 사진관</button>
           <button class="btn missionBtn" data-a="missions"><span class="em">🎯</span> 오늘의 미션 ${missionsText()}${missionClaimable() ? '<span class="dot"></span>' : ''}</button>
@@ -102,7 +104,7 @@ const UI = (() => {
     if (!s.seen.intro) { setTimeout(() => { if (S().seen.intro || cur !== 'home' || $('.story')) return; Story.play('intro', () => { S().seen.intro = true; Store.save(true); dailyBonus(); }); }, 300); }
     else if (!birthday() && !christmas()) dailyBonus();
   }
-  /* 가만히 두면 토리가 졸고, 친구들이 가끔 말해요 */
+  /* 가만히 두면 포포가 졸고, 친구들이 가끔 말해요 */
   function homeLife() {
     clearTimeout(idleT); clearInterval(chatT);
     const sleepy = () => {
@@ -158,7 +160,7 @@ const UI = (() => {
     if (d.getMonth() !== 11 || (d.getDate() !== 24 && d.getDate() !== 25) || s.xmasDone === d.getFullYear()) return false;
     s.xmasDone = d.getFullYear(); s.owned.santa = true; Store.save(true);
     setTimeout(() => {
-      modal(`<div class="tori">${lookSVG(Object.assign({}, s.look, { hat: 'santa', face: 'scarf' }), 'cheer', 'happy')}</div><h2>🎄 메리 크리스마스!</h2><p>토리가 산타 모자를 선물했어요!<br>${carrotTag().replace('<img', '<img style="width:34px;vertical-align:middle"')} 50도 함께!</p><div class="row"><button class="btn pink big" data-a="xmasTake">고마워! 🎅</button></div>`);
+      modal(`<div class="tori">${lookSVG(Object.assign({}, s.look, { hat: 'santa', face: 'scarf' }), 'cheer', 'happy')}</div><h2>🎄 메리 크리스마스!</h2><p>포포가 산타 모자를 선물했어요!<br>${carrotTag().replace('<img', '<img style="width:34px;vertical-align:middle"')} 50도 함께!</p><div class="row"><button class="btn pink big" data-a="xmasTake">고마워! 🎅</button></div>`);
       confetti(innerWidth / 2, innerHeight * 0.3, 80); Sfx.gift(); Voice.say('메리 크리스마스! 산타 모자 선물이야!');
     }, 400);
     return true;
@@ -172,7 +174,7 @@ const UI = (() => {
     s.bdayDone = d.getFullYear(); s.owned.partyhat = true; Store.save(true);
     setTimeout(() => {
       modal(`<div class="tori">${lookSVG(Object.assign({}, s.look, { hat: 'partyhat' }), 'cheer', 'happy')}</div><h2>🎂 생일 축하해, ${esc(QS.josa(s.name || '재윤', '아', '야'))}!</h2>
-        <p>토리랑 친구들이 준비한 선물이에요!<br>🎉 생일 고깔 + ${carrotTag().replace('<img', '<img style="width:34px;vertical-align:middle"')} 100</p>
+        <p>포포랑 친구들이 준비한 선물이에요!<br>🎉 생일 고깔 + ${carrotTag().replace('<img', '<img style="width:34px;vertical-align:middle"')} 100</p>
         <div class="row"><button class="btn pink big" data-a="bdayTake">고마워! 💖</button></div>`);
       confetti(innerWidth / 2, innerHeight * 0.3, 80); Sfx.fanfare();
       Voice.say(`생일 축하해, ${QS.josa(s.name || '재윤', '아', '야')}! 사랑해!`);
@@ -206,7 +208,7 @@ const UI = (() => {
   /* ---------- 오늘의 미션 ---------- */
   const MISSIONS = {
     play:  { icon: '🏃', text: (g) => `달리기 ${g}판 끝내기`, goal: 2, reward: 25 },
-    first: { icon: '🧠', text: (g) => `한 번에 정답 ${g}개`, goal: 12, reward: 25 },
+    first: { icon: '🧠', text: (g) => `한 번에 정답 ${g}개`, goal: 8, reward: 25 },
     field: { icon: '🥕', text: (g) => `길에서 당근 ${g}개 줍기`, goal: 40, reward: 20 },
     star3: { icon: '⭐', text: () => '별 3개 받기', goal: 1, reward: 30 },
     shine: { icon: '✨', text: (g) => `점프해서 반짝이 ${g}개 잡기`, goal: 3, reward: 20 },
@@ -262,7 +264,7 @@ const UI = (() => {
     { id: 'boss1', icon: '☁️', name: '구름 친구', desc: '심술 구름 1번 이기기', ok: (s) => Object.keys(s.boss || {}).length >= 1 },
     { id: 'boss4', icon: '🌈', name: '여정 완성', desc: '심술 구름 4마리와 친구 되기', ok: (s) => Object.keys(s.boss || {}).length >= 4 },
     { id: 'combo5', icon: '🔥', name: '불꽃 5연속', desc: '한 판에 5문제 연속 한 번에', ok: (s) => (s.stat.combo || 0) >= 5 },
-    { id: 'perfect', icon: '💯', name: '완벽한 판', desc: '8문제 모두 한 번에 맞히기', ok: (s) => (s.stat.perfect || 0) >= 1 },
+    { id: 'perfect', icon: '💯', name: '완벽한 판', desc: '한 판 문제를 모두 한 번에', ok: (s) => (s.stat.perfect || 0) >= 1 },
     { id: 'pole', icon: '👑', name: '깃대 꼭대기', desc: '깃대 꼭대기 잡기', ok: (s) => (s.stat.poleTop || 0) >= 1 },
     { id: 'star5', icon: '⭐', name: '별 부자', desc: '별 3개 받은 판 5개', ok: (s) => Object.values(s.stars).filter((x) => x === 3).length >= 5 },
     { id: 'cloth10', icon: '👗', name: '멋쟁이', desc: '옷 10개 갖기', ok: (s) => ART.ITEMS.filter((it) => s.owned[it.id]).length >= 10 },
@@ -272,6 +274,7 @@ const UI = (() => {
     { id: 'flyer3', icon: '🦋', name: '행운 사냥꾼', desc: '황금 나비·별똥별 3번 잡기', ok: (s) => (s.stat.flyers || 0) >= 3 },
     { id: 'bonus1', icon: '🌧️', name: '당근 비', desc: '보너스 길 달리기', ok: (s) => (s.stat.bonus || 0) >= 1 },
     { id: 'bottle3', icon: '🍾', name: '편지 친구', desc: '병 편지 3통 열기', ok: (s) => (s.stat.bottles || 0) >= 3 },
+    { id: 'dbl20', icon: '✌️', name: '2단 점프 왕', desc: '2단 점프 20번', ok: (s) => (s.stat.dbl || 0) >= 20 },
     { id: 'rich', icon: '💰', name: '당근 부자', desc: '당근 모두 1000개 모으기', ok: (s) => (s.earned || 0) >= 1000 },
   ];
   const stat = () => (S().stat = S().stat || {});
@@ -300,10 +303,10 @@ const UI = (() => {
   /* ---------- 놀이 방법 ---------- */
   ACT.help = () => {
     const rows = [
-      ['👆', '톡', '토리가 점프해요'], ['✊', '꾹', '더 높이 점프! (황금 당근은 높은 곳에)'], ['❓', '선물 구름', '밑에서 점프해서 머리로 콩!'],
+      ['👆', '톡', '포포가 점프해요'], ['✌️', '공중에서 한 번 더 톡', '2단 점프! 높은 상자도 훌쩍'], ['✊', '꾹', '더 높이 점프! (황금 당근은 높은 곳에)'], ['🌳', '덤불·상자', '뛰어넘어요 (부딪혀도 괜찮아요)'], ['❓', '선물 구름', '밑에서 점프해서 머리로 콩!'],
       ['✨', '황금 당근', '판마다 3개 숨어 있어요'], ['🔥', '3연속 정답', '무지개 별: 빨라지고 당근이 끌려와요'], ['🎈', '풍선', '하늘 당근 길을 둥실둥실'],
       ['🏁', '깃대', '꾹 눌러 높이 잡을수록 보너스'], ['🦋', '황금 나비·🌠 별똥별', '보이면 톡! 당근 10'], ['☁️', '심술 구름', '문제 맞히면 당근을 던져요'],
-      ['🎁', '보너스 길', '보스를 이기면 하루 한 번 당근 비'], ['🍾', '병 편지', '지도 바다에 하루 한 번'], ['💡', '토리 힌트', '판마다 2번, 틀린 보기 하나 지우기'],
+      ['🎁', '보너스 길', '보스를 이기면 하루 한 번 당근 비'], ['🍾', '병 편지', '지도 바다에 하루 한 번'], ['💡', '포포 힌트', '판마다 2번, 틀린 보기 하나 지우기'],
       ['🔁', '다시 도전', '틀린 문제가 나중에 다시 나와요'], ['🏅', '칭찬 도장', '하나마다 당근 20'],
     ];
     modal(`<h2>❔ 놀이 방법</h2><div class="helpGrid">${rows.map(([i, a, b]) => `<div><span>${i}</span><b>${a}</b><small>${b}</small></div>`).join('')}</div>
@@ -317,7 +320,7 @@ const UI = (() => {
     const row = (k, label) => `<div class="toggle">${label}<button class="sw ${s[k] ? 'on' : ''}" data-a="toggleSet" data-k="${k}"></button></div>`;
     const b = st.bday || {};
     const opts = (n, v) => `<option value="">-</option>` + Array.from({ length: n }, (_, i) => `<option ${+v === i + 1 ? 'selected' : ''}>${i + 1}</option>`).join('');
-    modal(`<h2>설정</h2>${row('sfx', '🔔 효과음')}${row('voice', '🗣️ 토리 목소리')}${row('music', '🎵 배경 음악')}${row('slow', '🐢 천천히 달리기')}${row('buzz', '📳 진동')}
+    modal(`<h2>설정</h2>${row('sfx', '🔔 효과음')}${row('voice', '🗣️ 포포 목소리')}${row('music', '🎵 배경 음악')}${row('slow', '🐢 천천히 달리기')}${row('buzz', '📳 진동')}
       <div class="toggle">🙂 이름<input id="setName" class="inp" maxlength="6" value="${esc(st.name || '재윤')}"></div>
       <div class="toggle">🎂 생일<span><select id="bm" class="inp sm">${opts(12, b.m)}</select>월 <select id="bd" class="inp sm">${opts(31, b.d)}</select>일</span></div>
       <div class="row"><button class="btn mint" data-a="saveSet">저장</button><button class="btn" data-a="replayIntro">📖 이야기 다시 보기</button></div>
@@ -337,7 +340,7 @@ const UI = (() => {
   ACT.toggleSet = (d, el) => {
     const s = S().set; s[d.k] = !s[d.k]; el.classList.toggle('on', s[d.k]); Store.save(true);
     if (d.k === 'music') { if (s.music) Sfx.startMusic(); else Sfx.stopMusic(); }
-    if (d.k === 'voice' && s.voice) Voice.say('토리 목소리가 켜졌어요!');
+    if (d.k === 'voice' && s.voice) Voice.say('포포 목소리가 켜졌어요!');
   };
   ACT.resetAsk = () => {
     const bg = modal(`<div class="big">⚠️</div><h2>정말 처음부터?</h2><p>당근, 옷, 친구, 별이 모두 사라져요.<br>엄마나 오빠에게 물어보고,<br>아래 버튼을 <b>3초 동안 꾹</b> 눌러요.</p>
@@ -352,18 +355,18 @@ const UI = (() => {
   /* ---------- 여정 지도 ---------- */
   function map(arg) {
     const st = S();
-    app.innerHTML = `<div class="screen bg"><div class="topbar">${back()}<div class="title">🗺️ 토리의 여정</div>${carrotsHTML()}</div><div id="jwrap" class="jwrap"></div>
-      <div class="jhint">칸을 누르면 토리가 걸어가요 👆</div></div>`;
+    app.innerHTML = `<div class="screen bg"><div class="topbar">${back()}<div class="title">🗺️ 포포의 여정</div>${carrotsHTML()}</div><div id="jwrap" class="jwrap"></div>
+      <div class="jhint">칸을 누르면 포포가 걸어가요 👆</div></div>`;
     Journey.mount($('#jwrap'), arg && arg.at != null ? arg.at : st.pos);
     const ph = Runner.envNow().phase; if (ph !== 'day') $('.jbox').classList.add(ph);
     const nx = Journey.nextIdx();
     const bridge = arg && arg.walkNext && Journey.NODES[nx] && Journey.NODES[nx].s === 0 && Journey.NODES[nx].w > 0 && !st.seen['bridge' + Journey.NODES[nx].w];
     if (bridge) { st.seen['bridge' + Journey.NODES[nx].w] = true; setTimeout(() => { banner('🌉 다리가 생겼어요!'); Sfx.fanfare(); Voice.say(`다리가 생겼어! ${W[Journey.NODES[nx].w].name}으로 가자!`); }, 500); }
     if (arg && arg.walkNext && nx !== Journey.at) setTimeout(() => Journey.walkTo(nx, () => { st.pos = nx; Store.save(); }), bridge ? 1600 : 700);
-    if (st.bottleDay !== today() && !st.seen.bottle) { st.seen.bottle = true; Store.save(); setTimeout(() => toast('🍾 바다에 병 편지가 떠 있어요! 찾아서 눌러 봐요', 3500), 1200); }
+    if (st.bottleDay !== today() && !st.seen.bottle) { st.seen.bottle = true; Store.save(); setTimeout(() => { if (cur === 'map') toast('🍾 바다에 병 편지가 떠 있어요! 찾아서 눌러 봐요', 3500); }, 1200); }
   }
   const LETTERS = [
-    '토리야, 오늘도 힘내! 너는 할 수 있어! — 삐약이 🐥', '당근은 꼭꼭 씹어 먹어야 해! — 꿀곰이 🐻', '바다에서 반짝이는 조개를 봤어! — 펭펭이 🐧',
+    '포포야, 오늘도 힘내! 너는 할 수 있어! — 삐약이 🐥', '당근은 꼭꼭 씹어 먹어야 해! — 꿀곰이 🐻', '바다에서 반짝이는 조개를 봤어! — 펭펭이 🐧',
     '재윤이가 웃으면 무지개가 떠요 🌈 — 무지개 마을', '오늘 틀린 문제는 내일의 정답이 돼요! — 몽글이 🐑', '숨은 황금 당근은 높은 곳을 좋아해! — 도토리 🐿️',
     '깃발 꼭대기를 잡으면 기분이 최고야! — 귤냥이 🐱', '친구를 꾸며 주면 친구가 엄청 좋아해! — 판순이 🐼', '심술 구름도 사실은 외로웠대 — 여울이 🦊',
   ];
@@ -425,19 +428,19 @@ const UI = (() => {
   function game({ w, s }) {
     const st = S();
     const boss = s === 'b', bonus = s === 'x';
-    const qs = boss ? QS.makeBossSet(w, 10, st.recent) : bonus ? [] : QS.makeSet(w, s, 8, st.recent);
+    const qs = boss ? QS.makeBossSet(w, 10, st.recent) : bonus ? [] : QS.makeSet(w, s, 5, st.recent);
     // 🔁 전에 틀린 문제를 두 개까지 다시 (같은 섬, 무지개 길은 아무 섬)
     st.retry = (st.retry || []).filter((r) => r && r.q && r.q.choices);
     if (!boss && !bonus) {
       const pool = st.retry.filter((r) => r.w === w || w === W.length - 1).slice(0, 2);
-      pool.forEach((r, k) => { const at = 2 + k * 3; if (at < qs.length && !qs.some((q) => q.key === r.q.key)) qs[at] = Object.assign({}, r.q, { retry: true }); });
+      pool.forEach((r, k) => { const at = 1 + k * 2; if (at < qs.length && !qs.some((q) => q.key === r.q.key)) qs[at] = Object.assign({}, r.q, { retry: true }); });
     }
     const fr = boss || bonus ? null : friendOf(w, s);
     G = { w, s, boss, bonus, qs, qi: -1, tries: 0, res: [], combo: 0, best: 0, qCarrots: 0, field: 0, poleBonus: 0, gold: [false, false, false],
       rescue: fr && !st.friends[fr.id] ? fr.id : null, friend: fr, done: false, hints: 2 };
     const prog = bonus ? `<div class="prog boss"><span class="bossName">🎁 보너스 길 · 당근을 모아요! 🥕</span></div>` : boss
       ? `<div class="prog boss"><div class="hpbar"><i style="width:100%"></i></div><span class="bossName">☁️ ${ART.BOSSES[w].name}</span></div>`
-      : `<div class="prog"><div class="bar" style="width:0%"></div>${qs.map((_, i) => `<span class="pin" style="left:${((i + 1) / 9) * 100}%"></span>`).join('')}<span class="goal">🏁</span><span class="me" style="left:0%">${lookSVG(st.look, 'run0', 'happy')}</span></div>`;
+      : `<div class="prog"><div class="bar" style="width:0%"></div>${qs.map((_, i) => `<span class="pin" style="left:${((i + 1) / (qs.length + 1)) * 100}%"></span>`).join('')}<span class="goal">🏁</span><span class="me" style="left:0%">${lookSVG(st.look, 'run0', 'happy')}</span></div>`;
     app.innerHTML = `<div class="screen" id="gameScr">
       <div class="hud"><button class="iconbtn" data-a="pause" aria-label="멈춤">⏸️</button>${prog}
         ${boss || bonus ? '' : `<div class="goldHud">${[0, 1, 2].map(() => '<i></i>').join('')}</div>`}${carrotsHTML()}</div>
@@ -448,7 +451,7 @@ const UI = (() => {
       world: W[w].id, count: qs.length, seed: Math.floor(Math.random() * 6), look: st.look,
       team: st.team.filter((id) => st.friends[id]).slice(0, 3).map((id) => ({ id, top: st.friends[id].top || '' })),
       rescue: G.rescue, slow: !!st.set.slow, tapHint: !st.seen.tap, goldHint: !st.seen.gold, blockHint: !st.seen.block,
-      onAsk, onCarrot, onPass, onFinish: finish, onHint, onGold, onPole, onBlock, onBossHp, onFlyer,
+      onAsk, onCarrot, onPass, onFinish: finish, onHint, onGold, onPole, onBlock, onBossHp, onFlyer, onBump, onDouble,
     });
     st.plays++; Store.save();
     Voice.say(bonus ? '당근 비다! 마음껏 먹자!' : boss ? '심술 구름이다! 문제를 맞혀서 당근을 던지자!' : pick(['출발!', '달려 보자!', '준비, 출발!', '친구야, 기다려! 금방 갈게!']));
@@ -462,7 +465,7 @@ const UI = (() => {
     hint.t = setTimeout(() => { const h = $('.tapHint'); if (h) h.remove(); }, ms);
   }
   function onHint(kind) {
-    if (kind === true) { hint('👆 화면을 톡! 누르면 점프 · <b>꾹</b> 누르면 더 높이!', 7000); Voice.say('화면을 톡 누르면 점프! 꾹 누르면 더 높이 뛰어!'); }
+    if (kind === true) { hint('👆 톡! 점프 · 공중에서 한 번 더 <b>톡!</b> 2단 점프 · <b>꾹</b> 누르면 더 높이', 7000); Voice.say('톡 누르면 점프! 공중에서 한 번 더 누르면 2단 점프야!'); }
     else if (kind === false) { S().seen.tap = true; Store.save(); hint(null); }
     else if (kind === 'block') { hint('❓ 선물 구름 밑에서 <b>톡!</b> 머리로 콩 하면 선물이 나와요', 5000); Voice.say('선물 구름이다! 밑에서 점프해서 머리로 콩!'); S().seen.block = true; Store.save(); }
     else if (kind === 'gold') { hint('✨ 반짝이는 황금 당근! 화면을 <b>꾹</b> 눌러서 높이 뛰어요', 5000); Voice.say('반짝이는 황금 당근이다! 꾹 눌러서 높이 뛰어!'); S().seen.gold = true; Store.save(); }
@@ -489,6 +492,8 @@ const UI = (() => {
     Voice.say(kind === 'meteor' ? '별똥별을 잡았다! 소원을 빌어 봐!' : '황금 나비다! 행운이 올 거야!');
     stat().flyers = (stat().flyers || 0) + 1; mission('shine', 1);
   }
+  function onBump() { if (Math.random() < 0.5) Runner.cheer(pick(['괜찮아!', '다시 점프!', '앗, 쿵!'])); Voice.say(pick(['앗, 쿵!', '아야, 괜찮아!', '다음엔 2단 점프!'])); }
+  function onDouble() { stat().dbl = (stat().dbl || 0) + 1; }
   function onPole(tier) {
     const B = [0, 10, 20, 30, 50][tier];
     if (tier === 4) stat().poleTop = (stat().poleTop || 0) + 1;
@@ -509,8 +514,9 @@ const UI = (() => {
   function onPass(qi) { updateProg(qi + 1); }
   function updateProg(n) {
     const bar = $('.prog .bar'), me = $('.prog .me');
-    if (bar) bar.style.width = (n / 9) * 100 + '%';
-    if (me) me.style.left = (n / 9) * 100 + '%';
+    const t = G ? G.qs.length + 1 : 6;
+    if (bar) bar.style.width = (n / t) * 100 + '%';
+    if (me) me.style.left = (n / t) * 100 + '%';
   }
   function onAsk(qi) {
     if (!G) return;
@@ -523,7 +529,7 @@ const UI = (() => {
     box.innerHTML = `<div class="qpanel" id="qp">
       ${q.retry ? '<div class="retryTag">🔁 다시 도전!</div>' : ''}
       <div class="qL"><div class="qtext"><button class="speak" data-a="speakQ" aria-label="다시 듣기">🔊</button><span>${esc(q.text)}</span></div><div class="qvis">${q.visual}</div><div id="qex"></div>
-        ${G.hints > 0 && q.choices.length > 2 ? `<button class="hintBtn" data-a="hint">💡 토리 힌트 <b>${G.hints}</b></button>` : ''}</div>
+        ${G.hints > 0 && q.choices.length > 2 ? `<button class="hintBtn" data-a="hint">💡 포포 힌트 <b>${G.hints}</b></button>` : ''}</div>
       <div class="qR">${q.choices.map((ch, i) => `<button class="choice ${q.emoji ? 'emo' : ''} ${q.subj === 'e' && !q.emoji ? 'en' : ''} ${long ? 'small' : ''}" data-a="choose" data-i="${i}">${esc(ch)}</button>`).join('')}</div></div>`;
     speakQ();
   }
@@ -581,7 +587,7 @@ const UI = (() => {
         }
       } else G.combo = 0;
       showCombo();
-      if (Math.random() < 0.6) setTimeout(() => Runner.cheer(pick(first ? ['최고야!', '천재다!', '멋져!', '토리 짱!', '야호!'] : ['잘했어!', '좋아좋아!'])), 900);
+      if (Math.random() < 0.6) setTimeout(() => Runner.cheer(pick(first ? ['최고야!', '천재다!', '멋져!', '포포 짱!', '야호!'] : ['잘했어!', '좋아좋아!'])), 900);
       const pin = document.querySelectorAll('.prog .pin')[G.qi]; if (pin) pin.classList.add(first ? 'ok' : 'meh');
       Voice.say(q.sayAfter && q.say ? q.say[0] : pick(first ? ['딩동댕!', '맞았어!', '최고야!', '멋져!', '우와, 천재다!', '정답!'] : ['맞았어!', '잘했어!', '좋아!']), q.sayAfter && q.say ? q.say[1] : 'ko');
       setTimeout(() => closeQ(first ? 'first' : 'second'), 750);
@@ -642,7 +648,7 @@ const UI = (() => {
     if (G.bonus) {
       st.bonusDay = today(); stat().bonus = (stat().bonus || 0) + 1; addCarrots(15); Store.save(true); setTimeout(checkStamps, 1800);
       Sfx.fanfare(); confetti(innerWidth / 2, innerHeight * 0.3, 70);
-      modal(`<div class="result"><div class="big">🥕🌧️🐰</div><h2>당근 비 끝!</h2><div class="gain">${carrotTag()}<b>+${G.field + G.poleBonus + 15}</b></div>
+      modal(`<div class="result"><div class="big">🥕🌧️🐴</div><h2>당근 비 끝!</h2><div class="gain">${carrotTag()}<b>+${G.field + G.poleBonus + 15}</b></div>
         <div class="gainParts"><span>🥕 길 ${G.field}</span><span>🏁 깃발 ${G.poleBonus}</span><span>🎁 보너스 15</span></div><p>내일 또 와요! 🌙</p>
         <div class="row"><button class="btn pink big" data-a="toMap">🗺️ 지도로 ▶</button></div></div>`);
       Voice.say(`당근을 ${G.field + G.poleBonus + 15}개나 모았어!`);
@@ -650,7 +656,7 @@ const UI = (() => {
       return;
     }
     const key = stageKey(G.w, G.s);
-    const stars = firsts >= n - 1 ? 3 : firsts >= n - 3 ? 2 : 1;
+    const stars = firsts >= n - 1 ? 3 : firsts >= Math.ceil(n * 0.6) ? 2 : 1;
     const prev = st.stars[key] || 0;
     st.stars[key] = Math.max(prev, stars);
     if (stars === 3) mission('star3', 1);
@@ -696,7 +702,7 @@ const UI = (() => {
     </div>`);
     setTimeout(() => checkStamps(), 1800);
     Voice.say(stars === 3 ? '와! 별 세 개야! 정말 대단해!' : stars === 2 ? '별 두 개! 잘했어!' : '끝까지 왔어! 멋져!').then(() => {
-      if (newFriend) Voice.say(`${newFriend.name}: 토리야, 구해 줘서 고마워! 나도 같이 갈래!`, 'ko', { queue: true });
+      if (newFriend) Voice.say(`${newFriend.name}: 포포야, 구해 줘서 고마워! 나도 같이 갈래!`, 'ko', { queue: true });
     });
     G.result = { w: G.w, s: G.s };
   }
@@ -783,7 +789,7 @@ const UI = (() => {
       grid = Object.entries(ART.FURS).map(([k, f]) => {
         const own = s.owned['fur:' + k], worn = s.look.fur === k;
         return `<button class="card ${worn ? 'worn' : ''} ${!own && f.price > s.carrots ? 'cant' : ''}" data-a="pickFur" data-k="${k}">
-          <div class="th"><div class="furDot" style="background:${f.f}"></div></div><div class="nm">${f.name}</div>
+          <div class="th"><div class="furDot" style="background:linear-gradient(135deg, ${f.m} 0 38%, ${f.m2} 38% 46%, ${f.f} 46%)"></div></div><div class="nm">${f.name}</div>
           ${own ? '<div class="tag">내 거예요</div>' : `<div class="pr">${carrotTag()}${f.price}</div>`}</button>`;
       }).join('');
     } else {
@@ -801,7 +807,7 @@ const UI = (() => {
     setTimeout(() => { if (s.newItems) { ART.ITEMS.filter((it) => it.cat === CL.cat).forEach((it) => delete s.newItems[it.id]); Store.save(); } }, 1500);
     const hasNew = (cat) => ART.ITEMS.some((it) => it.cat === cat && (s.newItems || {})[it.id]);
     const newIn = (cat) => hasNew(cat) || (cat === 'fur' ? Object.entries(ART.FURS).some(([k, f]) => !s.owned['fur:' + k] && f.price <= s.carrots) : ART.ITEMS.some((it) => it.cat === cat && !it.special && !s.owned[it.id] && it.price <= s.carrots));
-    app.innerHTML = `<div class="screen bg"><div class="topbar">${back()}<div class="title">토리 옷방</div>${carrotsHTML()}</div>
+    app.innerHTML = `<div class="screen bg"><div class="topbar">${back()}<div class="title">포포 옷방</div>${carrotsHTML()}</div>
       <div class="screen closet" style="position:relative;flex:1;animation:none">
         <div class="closetL"><div class="mirror">${CL.tryOn ? '<div class="tryTag">입어 보는 중 👀</div>' : ''}<div id="mirrorTori" style="width:100%">${lookSVG(look, 'stand', CL.tryOn ? 'wow' : 'happy')}</div></div>
           <div class="acts"><button class="btn" data-a="randomLook">🎲 아무거나</button><button class="btn" data-a="undress">🧺 다 벗기</button></div></div>
@@ -907,12 +913,12 @@ const UI = (() => {
     }
     const poses = [['stand', 'happy'], ['cheer', 'wow'], ['jump', 'happy'], ['stand', 'wink'], ['cheer', 'happy']];
     ST.poses = poses;
-    app.innerHTML = `<div class="screen bg"><div class="topbar">${back()}<div class="title">📸 토리 사진관</div><button class="btn" data-a="go" data-to="album">🖼️ 앨범</button></div>
+    app.innerHTML = `<div class="screen bg"><div class="topbar">${back()}<div class="title">📸 포포 사진관</div><button class="btn" data-a="go" data-to="album">🖼️ 앨범</button></div>
       <div class="screen studio" style="position:relative;flex:1;animation:none">
         <div class="studioMain">
           <div class="photoStage" id="pstage"><svg class="bd" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice">${ART.backdrop(ST.bd)}</svg><svg class="frameTop" viewBox="0 0 1000 600" preserveAspectRatio="none">${ART.frame(ST.frame || '')}</svg><div class="trash" id="trash">🗑️</div></div>
           <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-            <button class="btn" data-a="pose">🔄 토리 포즈</button>
+            <button class="btn" data-a="pose">🔄 포포 포즈</button>
             <button class="btn pink big" data-a="snap">📸 찰칵!</button>
             <button class="btn" data-a="clearStk">🧽 스티커 지우기</button></div>
         </div>
@@ -998,7 +1004,7 @@ const UI = (() => {
       body += svg.replace('<svg ', `<svg x="${p.x * 10 - w / 2}" y="${p.y * 6 - h}" `).replace(/width="\d+" height="\d+"/, `width="${w}" height="${h}"`);
     }
     body += ART.frame(ST.frame || '');
-    body += `<text x="975" y="580" font-size="20" text-anchor="end" fill="#fff" opacity=".9" font-family="sans-serif" stroke="#6e5363" stroke-width="3" paint-order="stroke">토리의 반짝 달리기 · ${today()}</text>`;
+    body += `<text x="975" y="580" font-size="20" text-anchor="end" fill="#fff" opacity=".9" font-family="sans-serif" stroke="#6e5363" stroke-width="3" paint-order="stroke">포포의 반짝 모험 · ${today()}</text>`;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" width="1000" height="600">${body}</svg>`;
   }
   ACT.snap = () => {
@@ -1029,7 +1035,7 @@ const UI = (() => {
     };
     ACT.savePhoto = (d) => {
       const p = list.find((x) => x.id === d.id); if (!p) return;
-      const a = document.createElement('a'); a.href = p.url; a.download = `토리사진_${new Date(p.at).toISOString().slice(0, 10)}_${p.id.slice(-4)}.jpg`;
+      const a = document.createElement('a'); a.href = p.url; a.download = `포포사진_${new Date(p.at).toISOString().slice(0, 10)}_${p.id.slice(-4)}.jpg`;
       document.body.appendChild(a); a.click(); a.remove();
       toast('💾 저장했어요! 갤러리(다운로드)에서 볼 수 있어요', 2600);
     };

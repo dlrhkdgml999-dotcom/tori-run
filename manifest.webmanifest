@@ -1,6 +1,6 @@
 {
-  "name": "토리의 반짝 달리기",
-  "short_name": "토리 달리기",
+  "name": "포포의 반짝 모험",
+  "short_name": "포포 모험",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",

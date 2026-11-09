@@ -1,4 +1,4 @@
-/* 토리의 반짝 달리기 — 이야기 장면 (오프닝·장 시작·보스·엔딩) */
+/* 포포의 반짝 모험 — 이야기 장면 (오프닝·장 시작·보스·엔딩) */
 'use strict';
 const Story = (() => {
   const W = 1000, H = 560;
@@ -20,10 +20,10 @@ const Story = (() => {
     const B = (i) => ART.BOSSES[i];
     switch (id) {
       case 'intro': return [
-        { bd: 'rainbow', art: () => place(ART.tori(look(), 'cheer', 'happy'), 500, 470, 190) + friendsRow(520, 78), text: '무지개 마을에는 토리와 친구들이 사이좋게 살았어요.' },
+        { bd: 'rainbow', art: () => place(ART.tori(look(), 'cheer', 'happy'), 500, 470, 190) + friendsRow(520, 78), text: '무지개 마을에는 포포와 친구들이 사이좋게 살았어요.' },
         { bd: 'night', art: () => place(ART.boss(3, 'angry'), 500, 330, 420) + place(ART.tori(look(), 'stand', 'oops'), 210, 520, 150), text: '그런데 어느 날, 심술 구름이 나타났어요.\n"흥! 다들 너무 즐거워 보이잖아!"' },
         { bd: 'meadow', art: () => ART.FRIENDS.map((f, i) => bubble(place(ART.friend(f.id), 90 + (i % 6) * 164, 230 + Math.floor(i / 6) * 190, 82), 90 + (i % 6) * 164, 190 + Math.floor(i / 6) * 190, 58)).join(''), text: '심술 구름은 친구 12명을 비눗방울에 가두고\n멀리멀리 날아가 버렸어요!' },
-        { bd: 'meadow', art: () => place(ART.tori(look(), 'cheer', 'wow'), 500, 520, 220), text: `토리는 친구들을 구하러 여정을 떠나기로 했어요.\n${cn}, 같이 가 줄래?`, btn: '같이 가자! 🐰' },
+        { bd: 'meadow', art: () => place(ART.tori(look(), 'cheer', 'wow'), 500, 520, 220), text: `포포는 친구들을 구하러 여정을 떠나기로 했어요.\n${cn}, 같이 가 줄래?`, btn: '같이 가자! 🦄' },
       ];
       case 'ch0': case 'ch1': case 'ch2': case 'ch3': {
         const i = +id[2];
@@ -37,19 +37,19 @@ const Story = (() => {
       }
       case 'boss0': case 'boss1': case 'boss2': case 'boss3': {
         const i = +id[4];
-        return [{ bd: 'night', art: () => place(ART.boss(i, 'angry'), 620, 380, 420) + place(ART.tori(look(), 'stand', 'normal'), 220, 520, 160), text: `${B(i).name}: "흥! 여기는 못 지나가!"\n토리: "${cn}, 문제를 맞혀서 당근을 던지자!"`, btn: '덤벼라! 🥕' }];
+        return [{ bd: 'night', art: () => place(ART.boss(i, 'angry'), 620, 380, 420) + place(ART.tori(look(), 'stand', 'normal'), 220, 520, 160), text: `${B(i).name}: "흥! 여기는 못 지나가!"\n포포: "${cn}, 문제를 맞혀서 당근을 던지자!"`, btn: '덤벼라! 🥕' }];
       }
       case 'win0': case 'win1': case 'win2': case 'win3': {
         const i = +id[3];
         return [
           { bd: 'rainbow', art: () => place(ART.boss(i, 'happy'), 640, 360, 380) + place(ART.tori(look(), 'stand', 'happy'), 230, 520, 160), text: `${B(i).name}: "사실… 나도 같이 놀고 싶었어.\n심술부려서 미안해!"` },
-          { bd: 'rainbow', art: () => place(ART.boss(i, 'happy'), 640, 360, 380) + place(ART.tori(look(), 'cheer', 'happy'), 230, 520, 160) + place(ART.badge(i), 500, 250, 120), text: `토리: "괜찮아! 그럼 우리 친구 하자!"\n${world(i).name}의 배지를 받았어요!`, btn: '좋아! ✨' },
+          { bd: 'rainbow', art: () => place(ART.boss(i, 'happy'), 640, 360, 380) + place(ART.tori(look(), 'cheer', 'happy'), 230, 520, 160) + place(ART.badge(i), 500, 250, 120), text: `포포: "괜찮아! 그럼 우리 친구 하자!"\n${world(i).name}의 배지를 받았어요!`, btn: '좋아! ✨' },
         ];
       }
       case 'ending': return [
         { bd: 'rainbow', art: () => place(ART.tori(Object.assign({}, look(), { hat: 'rainbowcrown' }), 'cheer', 'happy'), 500, 470, 200) + friendsRow(530, 80) + [0, 1, 2, 3].map((i) => place(ART.boss(i, 'happy'), 120 + i * 250, 170, 150)).join(''), text: '무지개 마을에 다시 무지개가 떴어요!\n친구들이 모두 집으로 돌아왔어요.' },
         { bd: 'party', art: () => place(ART.tori(Object.assign({}, look(), { hat: 'rainbowcrown' }), 'cheer', 'wow'), 500, 520, 230), text: `${cn}, 정말 고마워!\n너는 최고의 여행 친구야! 💖\n🎁 무지개 왕관을 받았어요!` },
-        { bd: 'night', art: () => place(ART.tori(look(), 'jump', 'happy'), 500, 500, 200) + friendsRow(540, 70), text: '끝… 이 아니에요!\n별 3개와 황금 당근을 모으러\n언제든 다시 달려요 🐰✨', btn: '또 놀자!' },
+        { bd: 'night', art: () => place(ART.tori(look(), 'jump', 'happy'), 500, 500, 200) + friendsRow(540, 70), text: '끝… 이 아니에요!\n별 3개와 황금 당근을 모으러\n언제든 다시 달려요 ✨', btn: '또 놀자!' },
       ];
     }
     return [];

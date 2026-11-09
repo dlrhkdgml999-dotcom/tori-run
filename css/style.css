@@ -444,3 +444,12 @@ button { font-family: var(--font); color: var(--ink); cursor: pointer; border: 0
   .homeSide .btn.big { font-size: 22px; padding: 8px 18px; }
   .home .team svg { width: 54px; }
 }
+
+.jmap .glint { animation: twinkle 2.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.jmap .mcloud { animation: mdrift 40s ease-in-out infinite alternate; }
+@keyframes mdrift { to { transform: translateX(160px); } }
+.jmap .mill { animation: spinMill 6s linear infinite; }
+@keyframes spinMill { to { transform: rotate(360deg); } }
+.jbox { box-shadow: inset 0 0 0 6px #fff, inset 0 0 40px rgba(20, 80, 130, .25); }
+
+.deco .land { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 38vh; }

@@ -1,18 +1,18 @@
-/* 토리의 반짝 달리기 — 그림 (모두 직접 그린 SVG) */
+/* 포포의 반짝 모험 — 그림 (모두 직접 그린 SVG) */
 'use strict';
 const ART = (() => {
   const OL = '#6e5363';            // 테두리
   const SW = 3.6;                  // 테두리 굵기
-  const FURS = {
-    white:    { name: '하얀 털',   f: '#fffaf6', s: '#f2e1e7', price: 0 },
-    pink:     { name: '분홍 털',   f: '#ffd6e4', s: '#f4bcd0', price: 30 },
-    sky:      { name: '하늘 털',   f: '#d3e9ff', s: '#b6d6fa', price: 30 },
-    mint:     { name: '민트 털',   f: '#cdf3e2', s: '#a9e3c8', price: 35 },
-    lemon:    { name: '레몬 털',   f: '#fff0b0', s: '#f2d97e', price: 40 },
-    lavender: { name: '보라 털',   f: '#e6dbff', s: '#cdbdf5', price: 45 },
-    choco:    { name: '초코 털',   f: '#ecd3bd', s: '#d6b394', price: 50 },
-    gray:     { name: '구름 털',   f: '#e9ecef', s: '#ced4da', price: 60 },
-    peach:    { name: '복숭아 털', f: '#ffd8c2', s: '#f7b99b', price: 70 },
+  const FURS = {   // f 털, s 그림자, m 갈기, m2 갈기 줄, mz 주둥이
+    white:    { name: '하얀 털',   f: '#fffaf6', s: '#ecdbe6', m: '#ffa8d0', m2: '#cbb8ff', mz: '#ffffff', price: 0 },
+    pink:     { name: '분홍 털',   f: '#ffd9e6', s: '#f2bdd1', m: '#a98bfa', m2: '#e5dbff', mz: '#fff2f7', price: 30 },
+    sky:      { name: '하늘 털',   f: '#d6eaff', s: '#b5d3f7', m: '#ff9cc4', m2: '#ffe3ef', mz: '#f4f9ff', price: 30 },
+    mint:     { name: '민트 털',   f: '#cff4e3', s: '#a7e0c5', m: '#ffb38a', m2: '#ffe8cc', mz: '#f2fdf7', price: 35 },
+    lemon:    { name: '레몬 털',   f: '#fff1b8', s: '#f0d683', m: '#8fa8ff', m2: '#dbe4ff', mz: '#fffbe8', price: 40 },
+    lavender: { name: '보라 털',   f: '#e8ddff', s: '#cbbaf3', m: '#ff8fb6', m2: '#fff0f6', mz: '#f9f5ff', price: 45 },
+    choco:    { name: '초코 털',   f: '#e9cdb4', s: '#d1ac8b', m: '#fff0d6', m2: '#ffffff', mz: '#fff5ec', price: 50 },
+    gray:     { name: '구름 털',   f: '#eceff3', s: '#cdd3db', m: '#74c0fc', m2: '#d0ebff', mz: '#ffffff', price: 60 },
+    peach:    { name: '복숭아 털', f: '#ffdcc8', s: '#f5b99a', m: '#7bdc8f', m2: '#e6fcf0', mz: '#fff5ef', price: 70 },
   };
 
   let uidN = 0;
@@ -116,7 +116,7 @@ const ART = (() => {
     { id: 'face', name: '얼굴', icon: '😎' },
     { id: 'shoes', name: '신발', icon: '👟' },
     { id: 'back', name: '등', icon: '🎈' },
-    { id: 'fur', name: '털 색', icon: '🎨' },
+    { id: 'fur', name: '털·갈기', icon: '🎨' },
   ];
 
   /* ---------- 자세 ---------- */
@@ -227,7 +227,7 @@ const ART = (() => {
   }
 
   /* ---------- 신발 ---------- */
-  function foot(x, y, r, furF, shoe) {
+  function foot(x, y, r, furF, shoe, hoof) {
     const g = (inner) => `<g transform="rotate(${r} ${x} ${y})">${inner}</g>`;
     switch (shoe) {
       case 'sneakers':
@@ -249,12 +249,13 @@ const ART = (() => {
       case 'cloudshoes':
         return g(`<circle cx="${x - 10}" cy="${y + 2}" r="9" ${st('#fff')}/><circle cx="${x + 2}" cy="${y - 4}" r="11" ${st('#fff')}/><circle cx="${x + 14}" cy="${y + 2}" r="9" ${st('#fff')}/><path d="M${x - 16} ${y + 6} h34" stroke="#fff" stroke-width="8"/>` + sparkle(x + 20, y - 10, 4, '#a5d8ff'));
     }
-    return g(`<ellipse cx="${x}" cy="${y}" rx="17" ry="10" ${st(furF)}/><path d="M${x + 6} ${y - 4} v6 M${x + 11} ${y - 3} v5" stroke="${OL}" stroke-width="1.6" stroke-linecap="round" opacity=".5"/>`);
+    return g(`<ellipse cx="${x}" cy="${y}" rx="17" ry="10" ${st(furF)}/><path d="M${x - 15} ${y + 2} Q${x} ${y + 14} ${x + 15} ${y + 2} L${x + 16} ${y + 4} Q${x} ${y + 15} ${x - 16} ${y + 4}Z" fill="${hoof || furF}"/><ellipse cx="${x}" cy="${y}" rx="17" ry="10" fill="none" stroke="${OL}" stroke-width="${SW}"/>`);
   }
 
   /* ---------- 얼굴 ---------- */
   function eyes(expr) {
-    const open = (x) => `<ellipse cx="${x}" cy="118" rx="7" ry="8.5" fill="${OL}"/><circle cx="${x + 2.4}" cy="114.5" r="2.8" fill="#fff"/><circle cx="${x - 2}" cy="121" r="1.2" fill="#fff"/>`;
+    const open = (x) => `<ellipse cx="${x}" cy="119" rx="8.6" ry="10.4" fill="${OL}"/><ellipse cx="${x}" cy="123" rx="5.4" ry="4.6" fill="#9b6fb0" opacity=".55"/><circle cx="${x + 2.8}" cy="114.5" r="3.4" fill="#fff"/><circle cx="${x - 2.6}" cy="123.5" r="1.5" fill="#fff"/>` +
+      `<path d="M${x + (x < 100 ? -7 : 7)} ${111} l${x < 100 ? -5 : 5} -4 M${x + (x < 100 ? -8.5 : 8.5)} ${115} l${x < 100 ? -5 : 5} -2" stroke="${OL}" stroke-width="2.2" stroke-linecap="round"/>`;
     const smile = (x) => `<path d="M${x - 7} 120 Q${x} 110 ${x + 7} 120" fill="none" stroke="${OL}" stroke-width="3.4" stroke-linecap="round"/>`;
     switch (expr) {
       case 'happy': return smile(84) + smile(116);
@@ -349,26 +350,33 @@ const ART = (() => {
     return '';
   }
 
-  /* ---------- 토리 ----------
+  /* ---------- 포포 (아기 포니, 주인공) ----------
      look: {fur, hat, cloth, face, shoes, back}
-     pose: stand run0 run1 jump cheer, expr: normal happy oops wow wink */
+     pose: stand run0 run1 jump cheer, expr: normal happy oops wow wink sleep */
   function tori(look = {}, pose = 'stand', expr = 'normal') {
     const F = FURS[look.fur] || FURS.white;
     const P = POSE[pose] || POSE.stand;
     const id = uid();
     let s = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260" width="200" height="260">`;
+    s += `<defs><radialGradient id="${id}g" cx="38%" cy="28%" r="78%"><stop offset="0" stop-color="#ffffff"/><stop offset=".42" stop-color="${F.f}"/><stop offset="1" stop-color="${F.s}"/></radialGradient>
+      <linearGradient id="${id}m" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${F.m2}"/><stop offset=".35" stop-color="${F.m}"/><stop offset="1" stop-color="${F.m}"/></linearGradient></defs>`;
+    const FG = `url(#${id}g)`, MG = `url(#${id}m)`;
     s += backLayer(look.back);
-    // 꼬리
-    s += `<circle cx="56" cy="214" r="13" ${st('#fff')}/>`;
+    // 뒷갈기: 한쪽으로 길게 흘러내려요
+    s += `<path d="M96 62 Q150 58 160 112 Q166 152 150 188 Q140 200 128 196 Q140 180 136 160 Q128 178 114 180 Q130 156 128 128 Q124 96 96 62Z" ${st(MG)}/>`;
+    s += `<path d="M146 108 Q154 142 142 176" fill="none" stroke="${F.m2}" stroke-width="4" stroke-linecap="round" opacity=".9"/>`;
+    s += `<path d="M76 70 Q44 84 44 120 Q46 134 56 142 Q60 132 62 124 Q68 132 76 130 Q68 114 76 96Z" ${st(MG)}/>`;
+    // 꼬리 (갈기 색)
+    s += `<path d="M64 210 Q30 192 22 226 Q20 252 44 250 Q32 236 42 224 Q50 240 62 232 Q58 222 66 220Z" ${st(MG)}/><path d="M56 214 Q36 210 34 228" fill="none" stroke="${F.m2}" stroke-width="4" stroke-linecap="round" opacity=".9"/>`;
     // 몸
-    s += `<ellipse cx="100" cy="202" rx="42" ry="37" ${st(F.f)}/>`;
+    s += `<ellipse cx="100" cy="202" rx="42" ry="37" ${st(FG)}/>`;
     s += `<clipPath id="${id}b"><ellipse cx="100" cy="202" rx="40" ry="35"/></clipPath>`;
-    s += `<ellipse cx="100" cy="210" rx="25" ry="22" fill="#fff" opacity=".75" clip-path="url(#${id}b)"/>`;
+    s += `<ellipse cx="100" cy="212" rx="24" ry="20" fill="#fff" opacity=".55" clip-path="url(#${id}b)"/>`;
     if (look.cloth) s += `<g clip-path="url(#${id}b)">${clothClip(look.cloth)}</g><ellipse cx="100" cy="202" rx="42" ry="37" fill="none" stroke="${OL}" stroke-width="${SW}"/>`;
-    // 발
-    s += foot(P.L[0], P.L[1], P.L[2], F.f, look.shoes) + foot(P.R[0], P.R[1], P.R[2], F.f, look.shoes);
+    // 발 (발굽은 갈기 색)
+    s += foot(P.L[0], P.L[1], P.L[2], F.f, look.shoes, F.m) + foot(P.R[0], P.R[1], P.R[2], F.f, look.shoes, F.m);
     s += clothOver(look.cloth);
-    // 팔
+    // 앞다리
     const ARM = { raincoat: '#ffd43b', sailor: '#fff', princess: '#d0bfff', sparkledress: '#91a7ff', stripe: '#fff', overall: '#ffe28a', dress: '#ffb3cc', heartshirt: '#fff', pajama: '#a5d8ff', bee: '#ffd43b', tutu: '#ffc9de', hanbok: '#ff8fa3' };
     const armFill = ARM[look.cloth] || F.f;
     s += `<ellipse cx="64" cy="${194 + P.ay}" rx="10" ry="15" transform="rotate(${P.aL} 66 ${182 + P.ay})" ${st(armFill)}/>`;
@@ -378,17 +386,23 @@ const ART = (() => {
       s += band(64, P.aL) + band(136, P.aR);
     }
     // 귀
-    s += `<g transform="rotate(-12 82 84)"><ellipse cx="82" cy="46" rx="16" ry="42" ${st(F.f)}/><ellipse cx="82" cy="50" rx="7.5" ry="29" fill="#ffb3c9"/></g>`;
-    s += `<g transform="rotate(16 120 84)"><ellipse cx="120" cy="46" rx="16" ry="42" ${st(F.f)}/><ellipse cx="120" cy="50" rx="7.5" ry="29" fill="#ffb3c9"/></g>`;
+    s += `<path d="M64 88 Q48 52 66 32 Q86 46 90 74Z" ${st(F.f)}/><path d="M68 76 Q60 54 68 44 Q80 54 82 70Z" fill="#ffc2d6"/>`;
+    s += `<path d="M136 88 Q152 52 134 32 Q114 46 110 74Z" ${st(F.f)}/><path d="M132 76 Q140 54 132 44 Q120 54 118 70Z" fill="#ffc2d6"/>`;
     // 머리
-    s += `<ellipse cx="100" cy="118" rx="58" ry="52" ${st(F.f)}/>`;
-    s += `<ellipse cx="80" cy="96" rx="14" ry="8" fill="#fff" opacity=".55" transform="rotate(-20 80 96)"/>`;
+    s += `<ellipse cx="100" cy="118" rx="58" ry="52" ${st(FG)}/>`;
+    // 주둥이 (은은하게)
+    s += `<ellipse cx="100" cy="146" rx="30" ry="15.5" fill="${F.mz}" opacity=".95"/>`;
+    s += `<path d="M90 141 q2 -2 4 0 M106 141 q2 -2 4 0" fill="none" stroke="${OL}" stroke-width="2.2" stroke-linecap="round" opacity=".55"/>`;
     // 볼
-    if (look.face === 'heartcheeks') s += heart(70, 134, 8, '#ff9cbc', 1.6) + heart(130, 134, 8, '#ff9cbc', 1.6);
-    else s += `<ellipse cx="70" cy="134" rx="10" ry="6.5" fill="#ffadc6" opacity=".85"/><ellipse cx="130" cy="134" rx="10" ry="6.5" fill="#ffadc6" opacity=".85"/>`;
+    if (look.face === 'heartcheeks') s += heart(66, 134, 8, '#ff9cbc', 1.6) + heart(134, 134, 8, '#ff9cbc', 1.6);
+    else s += `<ellipse cx="66" cy="134" rx="10" ry="6.5" fill="#ffadc6" opacity=".8"/><ellipse cx="134" cy="134" rx="10" ry="6.5" fill="#ffadc6" opacity=".8"/>`;
     s += eyes(expr);
-    s += `<path d="M96 126 Q100 124 104 126 Q100 131 96 126Z" fill="#ff8fab" stroke="${OL}" stroke-width="1.8" stroke-linejoin="round"/>`;
-    s += mouth(expr);
+    s += `<g transform="translate(0 12)">${mouth(expr)}</g>`;
+    // 앞머리: 옆으로 쓸어 넘긴 갈기 + 동그란 컬
+    s += `<path d="M58 106 Q50 66 92 58 Q138 52 150 90 Q140 80 126 80 Q136 96 124 108 Q118 88 100 86 Q84 86 76 98 Q70 108 58 106Z" ${st(MG)}/>`;
+    s += `<path d="M66 92 Q80 68 112 66" fill="none" stroke="${F.m2}" stroke-width="5" stroke-linecap="round" opacity=".95"/>`;
+    s += `<path d="M124 108 Q134 112 132 120 Q128 126 122 120" fill="none" stroke="${OL}" stroke-width="2.6" stroke-linecap="round"/>`;
+    s += `<ellipse cx="86" cy="70" rx="10" ry="4" fill="#fff" opacity=".6" transform="rotate(-16 86 70)"/>`;
     s += faceItem(look.face);
     s += hatLayer(look.hat);
     return s + `</svg>`;

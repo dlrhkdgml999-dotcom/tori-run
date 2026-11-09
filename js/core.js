@@ -1,4 +1,4 @@
-/* 토리의 반짝 달리기 — 저장 · 소리 · 목소리 · 효과 */
+/* 포포의 반짝 모험 — 저장 · 소리 · 목소리 · 효과 */
 'use strict';
 const APP_VERSION = '2026.11.09-여정';
 
@@ -109,6 +109,8 @@ const Sfx = (() => {
   const S = {
     tap() { if (on()) tone(660, 0, 0.07, 'triangle', 0.18); },
     jump() { if (on()) tone(380, 0, 0.22, 'sine', 0.25, 820); },
+    jump2() { if (on()) { tone(620, 0, 0.16, 'sine', 0.22, 1240); tone(1568, 0.08, 0.1, 'triangle', 0.12); } },
+    bump() { buzz(30); if (on()) { tone(200, 0, 0.12, 'square', 0.1, 120); tone(330, 0.1, 0.14, 'sine', 0.14, 260); } },
     carrot(n = 1) {   // 연달아 먹으면 음이 올라가요
       if (!on()) return;
       const SC = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24];
