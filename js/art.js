@@ -2,7 +2,7 @@
 'use strict';
 const ART = (() => {
   const OL = '#6e5363';            // 테두리
-  const SW = 3.6;                  // 테두리 굵기
+  const SW = 3.0;                  // 테두리 굵기
   const FURS = {   // f 털, s 그림자, m 갈기, m2 갈기 줄, mz 주둥이
     white:    { name: '하얀 털',   f: '#fffaf6', s: '#ecdbe6', m: '#ffa8d0', m2: '#cbb8ff', mz: '#ffffff', price: 0 },
     pink:     { name: '분홍 털',   f: '#ffd9e6', s: '#f2bdd1', m: '#a98bfa', m2: '#e5dbff', mz: '#fff2f7', price: 30 },
@@ -353,57 +353,79 @@ const ART = (() => {
   /* ---------- 포포 (아기 포니, 주인공) ----------
      look: {fur, hat, cloth, face, shoes, back}
      pose: stand run0 run1 jump cheer, expr: normal happy oops wow wink sleep */
+  function heroEyes(expr, id) {
+    const y = 124;
+    const open = (x, side) => `<ellipse cx="${x}" cy="${y}" rx="9.6" ry="11.6" fill="url(#${id}e)"/>` +
+      `<ellipse cx="${x + 2.6}" cy="${y - 5}" rx="3.8" ry="4.4" fill="#fff"/><circle cx="${x - 3}" cy="${y + 5}" r="1.8" fill="#fff"/><circle cx="${x + 4}" cy="${y + 4}" r="1" fill="#fff" opacity=".8"/>` +
+      `<path d="M${x + side * 8} ${y - 8} q${side * 5} -3 ${side * 7} -8 M${x + side * 9.6} ${y - 3} q${side * 5} -1 ${side * 8} -4" fill="none" stroke="${OL}" stroke-width="2.2" stroke-linecap="round"/>`;
+    const smile = (x) => `<path d="M${x - 8} ${y + 2} Q${x} ${y - 9} ${x + 8} ${y + 2}" fill="none" stroke="${OL}" stroke-width="3.4" stroke-linecap="round"/>`;
+    switch (expr) {
+      case 'happy': return smile(82) + smile(118);
+      case 'wink': return open(82, -1) + smile(118);
+      case 'oops': return `<path d="M76 ${y - 7} L88 ${y} L76 ${y + 7} M124 ${y - 7} L112 ${y} L124 ${y + 7}" fill="none" stroke="${OL}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>`;
+      case 'sleep': return `<path d="M74 ${y} Q82 ${y + 7} 90 ${y} M110 ${y} Q118 ${y + 7} 126 ${y}" fill="none" stroke="${OL}" stroke-width="3.2" stroke-linecap="round"/>`;
+      case 'wow': return open(82, -1) + open(118, 1) + sparkle(84, y - 2, 5.5) + sparkle(120, y - 2, 5.5);
+    }
+    return open(82, -1) + open(118, 1);
+  }
+  function heroMouth(expr) {
+    const y = 146;
+    if (expr === 'sleep') return `<ellipse cx="100" cy="${y}" rx="3.4" ry="2.6" fill="#ff8fab"/>`;
+    if (expr === 'oops') return `<ellipse cx="100" cy="${y + 1}" rx="4.6" ry="5.4" fill="#e64980" stroke="${OL}" stroke-width="2.2"/>`;
+    if (expr === 'happy' || expr === 'wow' || expr === 'wink')
+      return `<path d="M92 ${y - 3} Q100 ${y + 10} 108 ${y - 3}Z" fill="#ff7b9c" stroke="${OL}" stroke-width="2.4" stroke-linejoin="round"/><path d="M96 ${y + 3} Q100 ${y + 6} 104 ${y + 3}" fill="#ffc9d6"/>`;
+    return `<path d="M94 ${y - 2} Q97 ${y + 3} 100 ${y - 1} Q103 ${y + 3} 106 ${y - 2}" fill="none" stroke="${OL}" stroke-width="2.4" stroke-linecap="round"/>`;
+  }
   function tori(look = {}, pose = 'stand', expr = 'normal') {
     const F = FURS[look.fur] || FURS.white;
     const P = POSE[pose] || POSE.stand;
     const id = uid();
     let s = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260" width="200" height="260">`;
-    s += `<defs><radialGradient id="${id}g" cx="38%" cy="28%" r="78%"><stop offset="0" stop-color="#ffffff"/><stop offset=".42" stop-color="${F.f}"/><stop offset="1" stop-color="${F.s}"/></radialGradient>
-      <linearGradient id="${id}m" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${F.m2}"/><stop offset=".35" stop-color="${F.m}"/><stop offset="1" stop-color="${F.m}"/></linearGradient></defs>`;
+    s += `<defs><radialGradient id="${id}g" cx="40%" cy="30%" r="75%"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="${F.f}"/><stop offset="1" stop-color="${F.s}"/></radialGradient>
+      <linearGradient id="${id}m" x1="0" y1="0" x2=".7" y2="1"><stop offset="0" stop-color="${F.m2}"/><stop offset=".45" stop-color="${F.m}"/><stop offset="1" stop-color="${F.m}"/></linearGradient>
+      <linearGradient id="${id}e" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b2a45"/><stop offset=".55" stop-color="#5c3f78"/><stop offset="1" stop-color="#b48ad6"/></linearGradient>
+      <linearGradient id="${id}i" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd1e0"/><stop offset="1" stop-color="#ffb0c8"/></linearGradient></defs>`;
     const FG = `url(#${id}g)`, MG = `url(#${id}m)`;
+    const lw = 'stroke-width="2.8"';
     s += backLayer(look.back);
-    // 뒷갈기: 한쪽으로 길게 흘러내려요
-    s += `<path d="M96 62 Q150 58 160 112 Q166 152 150 188 Q140 200 128 196 Q140 180 136 160 Q128 178 114 180 Q130 156 128 128 Q124 96 96 62Z" ${st(MG)}/>`;
-    s += `<path d="M146 108 Q154 142 142 176" fill="none" stroke="${F.m2}" stroke-width="4" stroke-linecap="round" opacity=".9"/>`;
-    s += `<path d="M76 70 Q44 84 44 120 Q46 134 56 142 Q60 132 62 124 Q68 132 76 130 Q68 114 76 96Z" ${st(MG)}/>`;
-    // 꼬리 (갈기 색)
-    s += `<path d="M64 210 Q30 192 22 226 Q20 252 44 250 Q32 236 42 224 Q50 240 62 232 Q58 222 66 220Z" ${st(MG)}/><path d="M56 214 Q36 210 34 228" fill="none" stroke="${F.m2}" stroke-width="4" stroke-linecap="round" opacity=".9"/>`;
+    // 뒷갈기: 몽글몽글 흘러내림 (오른쪽 길게, 왼쪽 짧게)
+    s += `<path d="M118 62 C162 66 180 104 170 138 C182 152 178 176 160 182 C164 196 150 206 136 198 C146 188 140 176 132 174 C146 160 142 140 134 132 C146 112 140 84 118 62Z" ${st(MG, lw)}/>`;
+    s += `<path d="M150 98 C162 116 162 136 154 152 M150 162 C156 172 152 182 146 186" fill="none" stroke="${F.m2}" stroke-width="5" stroke-linecap="round" opacity=".9"/>`;
+    s += `<path d="M70 72 C42 82 34 112 42 134 C46 146 58 148 62 138 C56 128 60 116 68 108Z" ${st(MG, lw)}/>`;
+    // 꼬리
+    s += `<path d="M68 214 C44 196 20 208 22 232 C24 252 44 258 54 246 C42 242 40 228 50 224 C48 236 60 244 68 232 C62 226 62 220 68 214Z" ${st(MG, lw)}/><path d="M56 208 C40 206 32 218 34 230" fill="none" stroke="${F.m2}" stroke-width="4.4" stroke-linecap="round" opacity=".9"/>`;
     // 몸
-    s += `<ellipse cx="100" cy="202" rx="42" ry="37" ${st(FG)}/>`;
+    s += `<ellipse cx="100" cy="202" rx="42" ry="37" ${st(FG, lw)}/>`;
     s += `<clipPath id="${id}b"><ellipse cx="100" cy="202" rx="40" ry="35"/></clipPath>`;
-    s += `<ellipse cx="100" cy="212" rx="24" ry="20" fill="#fff" opacity=".55" clip-path="url(#${id}b)"/>`;
-    if (look.cloth) s += `<g clip-path="url(#${id}b)">${clothClip(look.cloth)}</g><ellipse cx="100" cy="202" rx="42" ry="37" fill="none" stroke="${OL}" stroke-width="${SW}"/>`;
-    // 발 (발굽은 갈기 색)
+    s += `<ellipse cx="100" cy="212" rx="22" ry="19" fill="#fff" opacity=".6" clip-path="url(#${id}b)"/>`;
+    if (look.cloth) s += `<g clip-path="url(#${id}b)">${clothClip(look.cloth)}</g><ellipse cx="100" cy="202" rx="42" ry="37" fill="none" stroke="${OL}" stroke-width="3"/>`;
     s += foot(P.L[0], P.L[1], P.L[2], F.f, look.shoes, F.m) + foot(P.R[0], P.R[1], P.R[2], F.f, look.shoes, F.m);
     s += clothOver(look.cloth);
-    // 앞다리
     const ARM = { raincoat: '#ffd43b', sailor: '#fff', princess: '#d0bfff', sparkledress: '#91a7ff', stripe: '#fff', overall: '#ffe28a', dress: '#ffb3cc', heartshirt: '#fff', pajama: '#a5d8ff', bee: '#ffd43b', tutu: '#ffc9de', hanbok: '#ff8fa3' };
     const armFill = ARM[look.cloth] || F.f;
-    s += `<ellipse cx="64" cy="${194 + P.ay}" rx="10" ry="15" transform="rotate(${P.aL} 66 ${182 + P.ay})" ${st(armFill)}/>`;
-    s += `<ellipse cx="136" cy="${194 + P.ay}" rx="10" ry="15" transform="rotate(${P.aR} 134 ${182 + P.ay})" ${st(armFill)}/>`;
+    const arm = (cx, rot, px) => `<g transform="rotate(${rot} ${px} ${182 + P.ay})"><ellipse cx="${cx}" cy="${194 + P.ay}" rx="10" ry="15" ${st(armFill, lw)}/><path d="M${cx - 9} ${200 + P.ay} Q${cx} ${213 + P.ay} ${cx + 9} ${200 + P.ay} L${cx + 8} ${204 + P.ay} Q${cx} ${212 + P.ay} ${cx - 8} ${204 + P.ay}Z" fill="${F.m}"/></g>`;
+    s += arm(64, P.aL, 66) + arm(136, P.aR, 134);
     if (look.cloth === 'hanbok') {
       const band = (cx, rot) => `<g transform="rotate(${rot} ${cx < 100 ? 66 : 134} ${182 + P.ay})">${['#ffe066', '#69db7c', '#74c0fc', '#fff'].map((c, i) => `<rect x="${cx - 9}" y="${186 + P.ay + i * 4}" width="18" height="3" fill="${c}"/>`).join('')}</g>`;
       s += band(64, P.aL) + band(136, P.aR);
     }
-    // 귀
-    s += `<path d="M64 88 Q48 52 66 32 Q86 46 90 74Z" ${st(F.f)}/><path d="M68 76 Q60 54 68 44 Q80 54 82 70Z" fill="#ffc2d6"/>`;
-    s += `<path d="M136 88 Q152 52 134 32 Q114 46 110 74Z" ${st(F.f)}/><path d="M132 76 Q140 54 132 44 Q120 54 118 70Z" fill="#ffc2d6"/>`;
+    // 귀 (동글 잎 모양)
+    s += `<path d="M66 84 C54 66 56 42 70 34 C84 44 90 62 88 76Z" ${st(F.f, lw)}/><path d="M70 74 C64 62 66 50 72 45 C80 54 82 64 81 72Z" fill="url(#${id}i)"/>`;
+    s += `<path d="M134 84 C146 66 144 42 130 34 C116 44 110 62 112 76Z" ${st(F.f, lw)}/><path d="M130 74 C136 62 134 50 128 45 C120 54 118 64 119 72Z" fill="url(#${id}i)"/>`;
     // 머리
-    s += `<ellipse cx="100" cy="118" rx="58" ry="52" ${st(FG)}/>`;
-    // 주둥이 (은은하게)
-    s += `<ellipse cx="100" cy="146" rx="30" ry="15.5" fill="${F.mz}" opacity=".95"/>`;
-    s += `<path d="M90 141 q2 -2 4 0 M106 141 q2 -2 4 0" fill="none" stroke="${OL}" stroke-width="2.2" stroke-linecap="round" opacity=".55"/>`;
+    s += `<ellipse cx="100" cy="120" rx="60" ry="51" ${st(FG, lw)}/>`;
+    s += `<ellipse cx="100" cy="150" rx="34" ry="14" fill="#fff" opacity=".45"/>`;
     // 볼
-    if (look.face === 'heartcheeks') s += heart(66, 134, 8, '#ff9cbc', 1.6) + heart(134, 134, 8, '#ff9cbc', 1.6);
-    else s += `<ellipse cx="66" cy="134" rx="10" ry="6.5" fill="#ffadc6" opacity=".8"/><ellipse cx="134" cy="134" rx="10" ry="6.5" fill="#ffadc6" opacity=".8"/>`;
-    s += eyes(expr);
-    s += `<g transform="translate(0 12)">${mouth(expr)}</g>`;
-    // 앞머리: 옆으로 쓸어 넘긴 갈기 + 동그란 컬
-    s += `<path d="M58 106 Q50 66 92 58 Q138 52 150 90 Q140 80 126 80 Q136 96 124 108 Q118 88 100 86 Q84 86 76 98 Q70 108 58 106Z" ${st(MG)}/>`;
-    s += `<path d="M66 92 Q80 68 112 66" fill="none" stroke="${F.m2}" stroke-width="5" stroke-linecap="round" opacity=".95"/>`;
-    s += `<path d="M124 108 Q134 112 132 120 Q128 126 122 120" fill="none" stroke="${OL}" stroke-width="2.6" stroke-linecap="round"/>`;
-    s += `<ellipse cx="86" cy="70" rx="10" ry="4" fill="#fff" opacity=".6" transform="rotate(-16 86 70)"/>`;
-    s += faceItem(look.face);
+    if (look.face === 'heartcheeks') s += heart(68, 140, 8, '#ff9cbc', 1.6) + heart(132, 140, 8, '#ff9cbc', 1.6);
+    else s += `<ellipse cx="66" cy="140" rx="11" ry="7" fill="#ffadc6" opacity=".75"/><ellipse cx="134" cy="140" rx="11" ry="7" fill="#ffadc6" opacity=".75"/><circle cx="62" cy="138" r="1.4" fill="#fff"/><circle cx="130" cy="138" r="1.4" fill="#fff"/>`;
+    s += heroEyes(expr, id);
+    s += `<path d="M95 138 q2 -1.6 4 0 M101 138 q2 -1.6 4 0" fill="none" stroke="${OL}" stroke-width="1.8" stroke-linecap="round" opacity=".45"/>`;
+    s += heroMouth(expr);
+    // 앞머리: 몽글몽글 쓸어 넘긴 갈기 + 정수리 꼬불
+    s += `<path d="M48 118 C40 74 78 52 108 56 C140 58 160 80 154 106 C148 98 140 94 132 96 C136 106 128 114 120 110 C122 100 114 92 104 94 C104 104 94 110 86 104 C86 96 78 94 72 100 C68 110 58 118 48 118Z" ${st(MG, lw)}/>`;
+    s += `<path d="M64 92 C74 72 96 64 120 68" fill="none" stroke="${F.m2}" stroke-width="5.5" stroke-linecap="round" opacity=".95"/>`;
+    s += `<ellipse cx="84" cy="72" rx="10" ry="4.2" fill="#fff" opacity=".65" transform="rotate(-20 84 72)"/><circle cx="102" cy="64" r="2.4" fill="#fff" opacity=".8"/>`;
+    s += ['glasses', 'sunglasses', 'heartglasses', 'goldstar'].includes(look.face) ? `<g transform="translate(-1 6)">${faceItem(look.face)}</g>` : faceItem(look.face);
     s += hatLayer(look.hat);
     return s + `</svg>`;
   }

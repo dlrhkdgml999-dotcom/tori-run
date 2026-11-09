@@ -4,7 +4,7 @@
 const Runner = (() => {
   let cv, c, W = 0, H = 0, dpr = 1, u = 1, gy = 0, tx = 0;
   let raf = 0, last = 0, G = null, paused = false, holding = false;
-  const SPEED = 340, SEG = 2400, OW = 104, BLOCK_Y = 300, POLE_H = 460;
+  const SPEED = 360, SEG = 2400, OW = 104, BLOCK_Y = 300, POLE_H = 460;
 
   /* 월드마다 풍경: 하늘 3색, 산 3겹, 풀, 흙 */
   const THEMES = {
@@ -49,33 +49,37 @@ const Runner = (() => {
     const obs = [], items = [];
     const boss = opt.mode === 'boss';
     const hurdles = [];
+    /* 달리기 조각 (길이 600): 문제 사이를 이걸로 채워요 */
+    const PIECES = {
+      line: (p) => { for (let k = 0; k < 6; k++) items.push({ x: p + 60 + k * 62, y: 60, kind: 'c' }); },
+      hop: (p) => { hurdles.push({ x: p + 260, w: 60, h: 58 }); for (let k = 0; k < 5; k++) items.push({ x: p + 170 + k * 60, y: 90 + Math.sin((k / 4) * Math.PI) * 110, kind: 'c' }); },
+      tall: (p) => { hurdles.push({ x: p + 280, w: 60, h: 104, tall: true }); items.push({ x: p + 310, y: 260, kind: 's' }); for (let k = 0; k < 3; k++) items.push({ x: p + 420 + k * 60, y: 60, kind: 'c' }); },
+      twin: (p) => { hurdles.push({ x: p + 180, w: 60, h: 58 }, { x: p + 420, w: 60, h: 58 }); items.push({ x: p + 210, y: 180, kind: 'c' }, { x: p + 450, y: 180, kind: 'c' }, { x: p + 330, y: 60, kind: 'c' }); },
+      cloud: (p, gives) => { items.push({ x: p + 300, y: BLOCK_Y, kind: 'q', gives: gives || 'carrots', bump: 0 }); for (let k = 0; k < 4; k++) items.push({ x: p + 120 + k * 60, y: 60, kind: 'c' }); },
+      sky: (p) => { for (let k = 0; k < 6; k++) items.push({ x: p + 100 + k * 60, y: 260 + Math.sin((k / 5) * Math.PI) * 120, kind: 'c' }); items.push({ x: p + 260, y: 420, kind: 's' }); },
+      stairs: (p) => { hurdles.push({ x: p + 120, w: 60, h: 58 }, { x: p + 360, w: 60, h: 104, tall: true }); for (let k = 0; k < 6; k++) items.push({ x: p + 100 + k * 70, y: 120 + k * 30, kind: 'c' }); },
+      big: (p) => { items.push({ x: p + 300, y: 300, kind: 'big' }); hurdles.push({ x: p + 250, w: 60, h: 58 }); },
+    };
+    const ORDER = [['line', 'hop', 'cloud', 'sky', 'tall', 'twin', 'line', 'hop'], ['hop', 'line', 'twin', 'cloud', 'sky', 'stairs', 'big', 'hop'], ['line', 'tall', 'cloud', 'stairs', 'sky', 'twin', 'hop', 'big']];
+    const PL = 600, SEGN = 8;
     let x = 1150;
+    if (!boss && opt.mode !== 'bonus') {   // 처음엔 문제 없이 신나게 달리기부터
+      PIECES.line(420); PIECES.hop(1020); PIECES.sky(1620);
+      x = 2400;
+    }
     if (!boss) {
+      const gifts = ['carrots', 'gold', Math.random() < 0.5 ? 'star' : 'balloon'];
       for (let i = 0; i < opt.count; i++) {
         obs.push({ x, type: T.obst[i % 2], qi: i, asked: false, done: false, jumpReady: false });
-        const o = x + OW;
-        // 당근 줄
-        const pat = ['line', 'arc', 'high', 'arc', 'line'][(i + opt.seed) % 5];
-        const a = o + 200;
-        if (pat === 'line') for (let k = 0; k < 5; k++) items.push({ x: a + k * 62, y: 60, kind: 'c' });
-        if (pat === 'arc') for (let k = 0; k < 6; k++) items.push({ x: a + k * 58, y: 60 + Math.sin((k / 5) * Math.PI) * 170, kind: 'c' });
-        if (pat === 'high') for (let k = 0; k < 4; k++) items.push({ x: a + 20 + k * 58, y: 200, kind: 'c' });
-        // 뛰어넘는 장애물 두 개 (위로 당근 무지개)
-        const h1 = o + 700, h2 = o + 1520;
-        const tall2 = i % 2 === 1;
-        hurdles.push({ x: h1, w: 60, h: 58, tall: false });
-        hurdles.push({ x: h2, w: 60, h: tall2 ? 104 : 58, tall: tall2 });
-        for (let k = 0; k < 5; k++) items.push({ x: h1 - 90 + k * 60, y: 90 + Math.sin((k / 4) * Math.PI) * 110, kind: 'c' });
-        items.push({ x: h2 + 30, y: tall2 ? 250 : 200, kind: 's' });
-        // ❓ 선물 구름
-        const gives = ['carrots', 'gold', Math.random() < 0.5 ? 'star' : 'balloon', ['carrots', 'star', 'balloon'][Math.floor(Math.random() * 3)], 'carrots'][i];
-        if (gives) items.push({ x: o + 1120, y: BLOCK_Y, kind: 'q', gives, bump: 0 });
-        if (i === 2) items.push({ x: o + 1880, y: 300, kind: 'big' });
-        // 숨은 황금 당근 (꾹 또는 2단 점프로)
-        if (i === 1) items.push({ x: o + 1330, y: 430, kind: 'G', gi: 0 });
-        if (i === 3) items.push({ x: o + 1860, y: 450, kind: 'G', gi: 2 });
-        x += SEG;
+        const o = x + OW + 160;
+        const order = ORDER[(i + opt.seed) % 3];
+        order.forEach((name, k) => PIECES[name](o + k * PL, name === 'cloud' ? gifts[i % 3] : null));
+        // 숨은 황금 당근 (꾹 또는 2단 점프로): 판마다 2개는 높은 곳, 1개는 선물 구름 속
+        if (i === 0) items.push({ x: o + 5 * PL + 300, y: 440, kind: 'G', gi: 0 });
+        if (i === opt.count - 1) items.push({ x: o + 6 * PL + 260, y: 450, kind: 'G', gi: 2 });
+        x += OW + 160 + SEGN * PL + 300;
       }
+      if (opt.count > 0 && !items.some((it) => it.gives === 'gold')) { const q = items.find((it) => it.kind === 'q'); if (q) q.gives = 'gold'; }
     }
     if (opt.mode === 'bonus') {   // 보너스 길: 문제 없이 당근이 가득
       for (let k = 0; k < 44; k++) {
@@ -88,9 +92,9 @@ const Runner = (() => {
         else items.push({ x: bx, y: 240, kind: 's' }, { x: bx + 70, y: 60, kind: 'c' });
       }
     }
-    const finishX = boss ? 1e9 : opt.mode === 'bonus' ? 7600 : obs[obs.length - 1].x + 2150;
+    const finishX = boss ? 1e9 : opt.mode === 'bonus' ? 7600 : x - 300 + 250;
     G = {
-      opt, T, env, obs, items, hurdles, finishX, boss, bumps: 0, scroll: 0, speed: 0, target: SPEED, state: 'run',
+      opt, T, env, obs, items, hurdles, finishX, boss, bumps: 0, carrotTotal: items.filter((it) => it.kind === 'c').length, carrotGot: 0, scroll: 0, speed: 0, target: SPEED, state: 'run',
       tori: { y: 0, vy: 0, air: false, dbl: false, holdT: 0, expr: 'normal', exprT: 0, pose: 'run0', poseT: 0, squash: 0 },
       hist: [], parts: [], amb: [], seasonal: [], time: 0, rescueT: 0, look: opt.look,
       power: null, streak: 0, streakT: 0, shake: 0, gold: [false, false, false],
@@ -161,7 +165,7 @@ const Runner = (() => {
     if (!G || !G.boss) return;
     const B = G.bossS;
     B.shots.push({ t: 0, dmg, big: dmg >= 2 });
-    B.phaseT = 3.6; B.puffT = 0.35;
+    B.phaseT = 5.2; B.puffT = 0.35; B.puff2 = 2.2;
     G.state = 'run'; G.target = SPEED * 0.6;
     react('happy', 1.2); Sfx.jump();
   }
@@ -264,7 +268,7 @@ const Runner = (() => {
           hearts(fx, gy - 160 * u);
           fireworks(5);
         }
-        if (g.rescueT > 3.0 && !g.ended) { g.ended = true; g.opt.onFinish({ gold: g.gold.slice(), pole: g.pole ? g.pole.tier : 1 }); }
+        if (g.rescueT > 3.0 && !g.ended) { g.ended = true; g.opt.onFinish({ gold: g.gold.slice(), pole: g.pole ? g.pole.tier : 1, carrots: g.carrotGot / Math.max(1, g.carrotTotal), bumps: g.bumps }); }
       }
     }
     // 뛰어넘는 장애물
@@ -326,7 +330,7 @@ const Runner = (() => {
       if (Math.abs(sx - tx) < 58 * u && it.y > t.y / u - 20 && it.y < t.y / u + 200) {
         it.got = true;
         const sy = gy - it.y * u;
-        if (it.kind === 'c') { g.streak++; g.streakT = 1.1; Sfx.carrot(g.streak); g.opt.onCarrot(1, sx, sy, 'c'); burst(sx, sy, '#ff922b', 6); }
+        if (it.kind === 'c') { g.carrotGot++; g.streak++; g.streakT = 1.1; Sfx.carrot(g.streak); g.opt.onCarrot(1, sx, sy, 'c'); burst(sx, sy, '#ff922b', 6); }
         else if (it.kind === 'big') { Sfx.star(); g.opt.onCarrot(5, sx, sy, 'big'); burst(sx, sy, '#ffd43b', 16); react('wow', 0.9); }
         else if (it.kind === 's') { Sfx.star(); g.opt.onCarrot(3, sx, sy, 's'); burst(sx, sy, '#fff3a3', 14); react('happy', 0.8); }
         else if (it.kind === 'G') {
@@ -389,6 +393,10 @@ const Runner = (() => {
       }
     }
     B.shots = B.shots.filter((s) => s.t < 1.2);
+    if (g.state === 'run' && B.puff2 > 0) {
+      B.puff2 -= dt;
+      if (B.puff2 <= 0) { const me = (g.scroll + tx) / u; g.hurdles.push({ x: me + (W - tx) / u + 40, w: 56, h: 56, roll: true, puff: true }); }
+    }
     if (g.state === 'run' && B.puffT > 0) {
       B.puffT -= dt;
       if (B.puffT <= 0) { const me = (g.scroll + tx) / u; g.hurdles.push({ x: me + (W - tx) / u + 40, w: 56, h: 56, roll: true, puff: true }); Sfx.wind(); B.mood = 'angry'; }

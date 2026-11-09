@@ -453,3 +453,7 @@ button { font-family: var(--font); color: var(--ink); cursor: pointer; border: 0
 .jbox { box-shadow: inset 0 0 0 6px #fff, inset 0 0 40px rgba(20, 80, 130, .25); }
 
 .deco .land { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 38vh; }
+
+.starWhy { display: flex; gap: 8px; justify-content: center; margin: 4px 0 6px; flex-wrap: wrap; }
+.starWhy span { background: #f3eef2; color: #b9a8b4; border-radius: 99px; padding: 5px 12px; font-size: 20px; }
+.starWhy span.on { background: #fff3bf; color: #b07d00; }

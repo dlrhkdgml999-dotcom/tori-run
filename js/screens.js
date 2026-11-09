@@ -20,6 +20,7 @@ const UI = (() => {
     if (name !== 'game' && Runner.active) Runner.stop();
     if (cur !== name && name !== 'home') { try { history.pushState({ s: name }, ''); } catch (e) {} }
     cur = name;
+    const tt = $('#toast'); if (tt) tt.classList.remove('on');
     app.classList.toggle('pass', name === 'game');
     if (unlocked && S().set.music) Sfx.startMusic(name === 'game' ? (arg && arg.s === 'b' ? 'boss' : 'run') : 'home');
     closeModal();
@@ -208,7 +209,7 @@ const UI = (() => {
   /* ---------- 오늘의 미션 ---------- */
   const MISSIONS = {
     play:  { icon: '🏃', text: (g) => `달리기 ${g}판 끝내기`, goal: 2, reward: 25 },
-    first: { icon: '🧠', text: (g) => `한 번에 정답 ${g}개`, goal: 8, reward: 25 },
+    first: { icon: '🧠', text: (g) => `한 번에 정답 ${g}개`, goal: 5, reward: 25 },
     field: { icon: '🥕', text: (g) => `길에서 당근 ${g}개 줍기`, goal: 40, reward: 20 },
     star3: { icon: '⭐', text: () => '별 3개 받기', goal: 1, reward: 30 },
     shine: { icon: '✨', text: (g) => `점프해서 반짝이 ${g}개 잡기`, goal: 3, reward: 20 },
@@ -428,12 +429,12 @@ const UI = (() => {
   function game({ w, s }) {
     const st = S();
     const boss = s === 'b', bonus = s === 'x';
-    const qs = boss ? QS.makeBossSet(w, 10, st.recent) : bonus ? [] : QS.makeSet(w, s, 5, st.recent);
+    const qs = boss ? QS.makeBossSet(w, 10, st.recent) : bonus ? [] : QS.makeSet(w, s, 3, st.recent);
     // 🔁 전에 틀린 문제를 두 개까지 다시 (같은 섬, 무지개 길은 아무 섬)
     st.retry = (st.retry || []).filter((r) => r && r.q && r.q.choices);
     if (!boss && !bonus) {
       const pool = st.retry.filter((r) => r.w === w || w === W.length - 1).slice(0, 2);
-      pool.forEach((r, k) => { const at = 1 + k * 2; if (at < qs.length && !qs.some((q) => q.key === r.q.key)) qs[at] = Object.assign({}, r.q, { retry: true }); });
+      pool.forEach((r, k) => { const at = 1 + k; if (at < qs.length && !qs.some((q) => q.key === r.q.key)) qs[at] = Object.assign({}, r.q, { retry: true }); });
     }
     const fr = boss || bonus ? null : friendOf(w, s);
     G = { w, s, boss, bonus, qs, qi: -1, tries: 0, res: [], combo: 0, best: 0, qCarrots: 0, field: 0, poleBonus: 0, gold: [false, false, false],
@@ -447,7 +448,7 @@ const UI = (() => {
       <div class="comboHud" id="combo"></div>
       <div id="qbox"></div></div>`;
     Runner.start({
-      mode: boss ? 'boss' : bonus ? 'bonus' : 'stage', bossIdx: w, hp: 8,
+      mode: boss ? 'boss' : bonus ? 'bonus' : 'stage', bossIdx: w, hp: 6,
       world: W[w].id, count: qs.length, seed: Math.floor(Math.random() * 6), look: st.look,
       team: st.team.filter((id) => st.friends[id]).slice(0, 3).map((id) => ({ id, top: st.friends[id].top || '' })),
       rescue: G.rescue, slow: !!st.set.slow, tapHint: !st.seen.tap, goldHint: !st.seen.gold, blockHint: !st.seen.block,
@@ -656,7 +657,9 @@ const UI = (() => {
       return;
     }
     const key = stageKey(G.w, G.s);
-    const stars = firsts >= n - 1 ? 3 : firsts >= Math.ceil(n * 0.6) ? 2 : 1;
+    // 별: 도착 1 + 문제(2개 이상 한 번에) 1 + 달리기(당근 70% 이상) 1
+    const starQ = firsts >= n - 1, starRun = (res.carrots || 0) >= 0.7;
+    const stars = 1 + (starQ ? 1 : 0) + (starRun ? 1 : 0);
     const prev = st.stars[key] || 0;
     st.stars[key] = Math.max(prev, stars);
     if (stars === 3) mission('star3', 1);
@@ -689,7 +692,7 @@ const UI = (() => {
       ${firsts === n ? '<div class="perfect">PERFECT 💯</div>' : ''}
       <h2>도착! ${stars === 3 ? '완벽해요 🎉' : stars === 2 ? '잘했어요 🎉' : '해냈어요 🎉'}</h2>
       <div class="bigStars">${[0, 1, 2].map((i) => `<span class="${i < stars ? '' : 'off'}">★</span>`).join('')}</div>
-      <p>한 번에 맞힌 문제 <b>${firsts}</b> / ${n}${G.best >= 3 ? ` · 🔥 최고 ${G.best}연속` : ''}</p>
+      <div class="starWhy"><span class="on">⭐ 도착!</span><span class="${starQ ? 'on' : ''}">⭐ 문제 ${firsts}/${n}</span><span class="${starRun ? 'on' : ''}">⭐ 당근 ${Math.round((res.carrots || 0) * 100)}%</span></div>
       <div class="goldRow big">${[0, 1, 2].map((i) => `<i class="${goldNow[i] ? 'on' : ''} ${res.gold[i] && !g0[i] ? 'new' : ''}"></i>`).join('')}<span>${allGold ? '황금 당근 다 모았다! +20' : newGold ? `황금 당근 ${newGold}개 찾았어요!` : '숨은 황금 당근을 찾아봐요'}</span></div>
       ${newFriend ? `<div class="topRow"><div class="chip on" style="font-size:24px">${ART.friend(newFriend.id)} 새 친구 <b>${newFriend.name}</b>(${newFriend.kind})${QS.josa(newFriend.kind, '을', '를').slice(newFriend.kind.length)} 구했어요!</div></div>` : ''}
       <div class="gain">${carrotTag()}<b>+${total}</b></div>

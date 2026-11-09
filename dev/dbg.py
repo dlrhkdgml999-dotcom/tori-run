@@ -12,7 +12,7 @@ async def main():
         r = await pg.evaluate(JS)
         print(r)
         await pg.wait_for_timeout(1500)
-        await pg.screenshot(path='/home/claude/tori-run/dev/out/dbg.png')
+        await pg.screenshot(path='/home/claude/tori-run/dev/out/dbg.png', full_page=True)
         await b.close()
 try: asyncio.run(main())
 finally: srv.terminate()
