@@ -68,7 +68,7 @@ async def main():
         print('살 수 있는 옷 전부 값', price)
         await pg.evaluate("UI.go('map')"); await pg.wait_for_timeout(400); await pg.screenshot(path=f'{OUT}/map_after.png')
         await pg.evaluate("UI.go('home')"); await pg.wait_for_timeout(400)
-        await pg.click('[data-a="missions"]'); await pg.wait_for_timeout(400); await pg.screenshot(path=f'{OUT}/missions.png')
+        await pg.evaluate("UI.ACT.missions()"); await pg.wait_for_timeout(400); await pg.screenshot(path=f'{OUT}/missions.png')
         await pg.evaluate('UI.ACT.closeModal()')
         await pg.evaluate("UI.go('friends')"); await pg.wait_for_timeout(400); await pg.screenshot(path=f'{OUT}/friends_after.png')
         # 다른 화면 크기

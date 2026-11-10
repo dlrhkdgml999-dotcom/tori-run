@@ -31,6 +31,7 @@ async def main():
                 await pg.mouse.click(random.randint(0, 1279), random.randint(0, 799))
             else:
                 await pg.go_back() if random.random() < 0.5 else None
+                if not pg.url.startswith('http'): await pg.go_forward(); await pg.wait_for_timeout(900)   # 11/11: 첫 페이지 앞(about:blank)까지 뒤로 가면 앱으로 돌아옴
             await pg.wait_for_timeout(random.choice([60, 150, 400]))
             cur = await pg.evaluate('UI.cur')
             screens[cur] = screens.get(cur, 0) + 1

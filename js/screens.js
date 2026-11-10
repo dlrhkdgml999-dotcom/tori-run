@@ -70,8 +70,6 @@ const UI = (() => {
     const left = team.slice(0, 2), right = team.slice(2);
     const fsvg = (id) => `<span class="tf" data-a="friendTalk" data-id="${id}">${ART.friend(id, (s.friends[id] || {}).top || '')}</span>`;
     const nFr = Object.keys(s.friends).length;
-    const nStars = Object.values(s.stars).reduce((a, b) => a + b, 0);
-    const nGold = goldCount();
     const cloudSVG = '<svg viewBox="0 0 120 60"><g fill="#fff"><circle cx="30" cy="38" r="20"/><circle cx="58" cy="26" r="26"/><circle cx="88" cy="38" r="20"/><rect x="30" y="38" width="58" height="20"/></g></svg>';
     let flowers = '';
     for (let i = 0; i < 9; i++) flowers += ART.flower(40 + i * 65, 52 + (i % 2) * 18, 9, ['#ffa8c5', '#fff3a3', '#d0bfff', '#a5d8ff'][i % 4]);
@@ -84,7 +82,7 @@ const UI = (() => {
       <path d="M0 140 Q150 60 320 120 T640 100 T960 110 T1200 80 V300 H0Z" fill="url(#hl1)"/><path d="M0 210 Q200 140 420 200 T840 180 T1200 190 V300 H0Z" fill="url(#hl2)"/></svg>`;
     app.innerHTML = `<div class="screen bg home ${night ? 'night' : ''}"><div class="deco">${land}<i class="cl c1">${cloudSVG}</i><i class="cl c2">${cloudSVG}</i><i class="cl c3">${cloudSVG}</i><b class="sp s1">✦</b><b class="sp s2">✦</b><b class="sp s3">♥</b><b class="sp s4">✦</b>${fall}</div>
       <div class="topbar" style="width:100%"><button class="iconbtn" data-a="settings" aria-label="설정">⚙️</button><button class="iconbtn" data-a="help" aria-label="놀이 방법">❓</button><div class="title"></div><button class="iconbtn rel" data-a="go" data-to="stamps" aria-label="칭찬 도장">🏅</button><button class="iconbtn" data-a="go" data-to="album" aria-label="앨범">🖼️</button>${carrotsHTML()}</div>
-      <div class="logo">포포의 반짝 모험<small>⭐ ${nStars}/36 · 🐾 ${nFr}/12 · <span class="gc">🥕</span> 황금 ${nGold}/36</small></div>
+      <div class="logo">포포의 반짝 모험<small>${nFr ? `🐾 친구 ${nFr}명과 함께` : '🐾 친구들을 구하러 가자!'}</small></div>
       <div class="badgeRow">${badges}</div>
       <div class="homeMain">
         <div class="stageTori">
@@ -98,7 +96,6 @@ const UI = (() => {
           <button class="btn lav rel" data-a="go" data-to="closet"><span class="em">👗</span> 포포 옷방${affordableNew() ? '<span class="dot"></span>' : ''}</button>
           <button class="btn mint" data-a="go" data-to="friends"><span class="em">🐾</span> 친구들</button>
           <button class="btn sky" data-a="go" data-to="studio"><span class="em">📸</span> 사진관</button>
-          <button class="btn missionBtn" data-a="missions"><span class="em">🎯</span> 오늘의 미션 ${missionsText()}${missionClaimable() ? '<span class="dot"></span>' : ''}</button>
         </div>
       </div></div>`;
     homeLife();
@@ -227,7 +224,10 @@ const UI = (() => {
     }
     return s.mission.list;
   }
+  // 11/11 오빠 "다 고쳐줘"(점검 보고서): 미션과 칭찬 도장이 둘 다 "이거 하면 당근"이라 겹쳐서 미션은 끔 (첫 화면 버튼 없음, 기록 s.mission은 그대로)
+  const MISSION_OFF = true;
   function mission(id, n) {
+    if (MISSION_OFF) return;
     const m = todayMissions().find((x) => x.id === id);
     if (!m || m.claimed) return;
     const goal = MISSIONS[id].goal, was = m.prog >= goal;
@@ -649,8 +649,7 @@ const UI = (() => {
     if (G.bonus) {
       st.bonusDay = today(); stat().bonus = (stat().bonus || 0) + 1; addCarrots(15); Store.save(true); setTimeout(checkStamps, 1800);
       Sfx.fanfare(); confetti(innerWidth / 2, innerHeight * 0.3, 70);
-      modal(`<div class="result"><div class="big">🥕🌧️🐴</div><h2>당근 비 끝!</h2><div class="gain">${carrotTag()}<b>+${G.field + G.poleBonus + 15}</b></div>
-        <div class="gainParts"><span>🥕 길 ${G.field}</span><span>🏁 깃발 ${G.poleBonus}</span><span>🎁 보너스 15</span></div><p>내일 또 와요! 🌙</p>
+      modal(`<div class="result"><div class="big">🥕🌧️🐴</div><h2>당근 비 끝!</h2><div class="gain">${carrotTag()}<b>+${G.field + G.poleBonus + 15}</b></div><p>내일 또 와요! 🌙</p>
         <div class="row"><button class="btn pink big" data-a="toMap">🗺️ 지도로 ▶</button></div></div>`);
       Voice.say(`당근을 ${G.field + G.poleBonus + 15}개나 모았어!`);
       G.result = { w: G.w, s: 'x' };
@@ -684,7 +683,6 @@ const UI = (() => {
     addCarrots(bonus);
     Store.save(true);
     const total = G.qCarrots + G.field + bonus + G.poleBonus;
-    const wrongs = G.res.filter((r) => r && !r.first);
     Sfx.fanfare();
     confetti(innerWidth / 2, innerHeight * 0.3, 60);
     const goldNow = st.gold[key];
@@ -696,9 +694,7 @@ const UI = (() => {
       <div class="goldRow big">${[0, 1, 2].map((i) => `<i class="${goldNow[i] ? 'on' : ''} ${res.gold[i] && !g0[i] ? 'new' : ''}"></i>`).join('')}<span>${allGold ? '황금 당근 다 모았다! +20' : newGold ? `황금 당근 ${newGold}개 찾았어요!` : '숨은 황금 당근을 찾아봐요'}</span></div>
       ${newFriend ? `<div class="topRow"><div class="chip on" style="font-size:24px">${ART.friend(newFriend.id)} 새 친구 <b>${newFriend.name}</b>(${newFriend.kind})${QS.josa(newFriend.kind, '을', '를').slice(newFriend.kind.length)} 구했어요!</div></div>` : ''}
       <div class="gain">${carrotTag()}<b>+${total}</b></div>
-      <div class="gainParts"><span>🧠 문제 ${G.qCarrots}</span><span>🥕 길 ${G.field}</span><span>🏁 깃발 ${G.poleBonus}</span><span>⭐ 별 ${starB + clear}</span>${goldB ? `<span>✨ 황금 ${goldB}</span>` : ''}${treasure ? `<span>🎁 보물 ${treasure}</span>` : ''}</div>
       ${giftQ.length ? `<div class="row"><button class="btn lav big" data-a="openGift">🎁 선물 상자 열기!${giftQ.length > 1 ? ` (${giftQ.length}개)` : ''}</button></div>` : ''}
-      ${wrongs.length ? `<details class="wrongs"><summary style="font-size:22px">📒 다시 볼 문제 ${wrongs.length}개</summary>${wrongs.map((r) => `<div>${esc(r.q.text)} → 정답 <b>${esc(r.q.answer)}</b></div>`).join('')}</details>` : ''}
       <div class="row" ${giftQ.length ? 'style="opacity:0;pointer-events:none" id="afterGift"' : ''}>
         <button class="btn" data-a="replay">🔁 다시</button>
         <button class="btn pink big" data-a="toMap">🗺️ 다음으로 ▶</button></div>
@@ -726,7 +722,6 @@ const UI = (() => {
         <h2>${ART.BOSSES[w].name}이 친구가 됐어요!</h2>
         <p>${first ? `${W[w].name}의 배지를 받았어요! ${w < W.length - 1 ? '다음 섬으로 가는 다리가 생겼어요 🌉' : ''}<br>🎁 지도에 <b>보너스 길(당근 비)</b>이 열렸어요!` : '다시 이겼어요! 대단해요!'}</p>
         <div class="gain">${carrotTag()}<b>+${total}</b></div>
-        <div class="gainParts"><span>🧠 문제 ${G.qCarrots}</span><span>🥕 길 ${G.field}</span><span>👑 보스 ${bonus}</span></div>
         ${giftQ.length ? `<div class="row"><button class="btn lav big" data-a="openGift">🎁 선물 상자 열기!${giftQ.length > 1 ? ` (${giftQ.length}개)` : ''}</button></div>` : ''}
         <div class="row" ${giftQ.length ? 'style="opacity:0;pointer-events:none" id="afterGift"' : ''}><button class="btn pink big" data-a="toMap">🗺️ ${w < W.length - 1 ? '다음 섬으로 ▶' : '지도로 ▶'}</button></div></div>`);
       Voice.say(first ? '배지를 받았어! 다음 섬으로 가자!' : '또 이겼다!');

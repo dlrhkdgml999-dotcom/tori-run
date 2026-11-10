@@ -208,6 +208,9 @@ const QS = (() => {
     ['넓다', '좁다'], ['기쁘다', '슬프다'], ['열다', '닫다'], ['앞', '뒤'], ['위', '아래'], ['들어가다', '나오다'], ['깨끗하다', '더럽다'], ['굵다', '가늘다'], ['오른쪽', '왼쪽'], ['안', '밖'], ['일어나다', '눕다'], ['웃다', '울다']];
   const ANIM_SOUND = [['🐶', '강아지', '멍멍'], ['🐱', '고양이', '야옹'], ['🦆', '오리', '꽥꽥'], ['🐮', '소', '음매'], ['🐷', '돼지', '꿀꿀'], ['🐓', '닭', '꼬끼오'], ['🐸', '개구리', '개굴개굴'], ['🐦', '참새', '짹짹'], ['🐑', '양', '매애']];
   const MOVE = [['🐰', '토끼', '깡충깡충'], ['🐢', '거북이', '엉금엉금'], ['🐧', '펭귄', '뒤뚱뒤뚱'], ['🐍', '뱀', '스르르'], ['🦋', '나비', '팔랑팔랑'], ['🐌', '달팽이', '느릿느릿'], ['🐟', '물고기', '뻐끔뻐끔'], ['🐝', '꿀벌', '윙윙']];
+  // 11/11: 느린 동물끼리(거북이·달팽이·뱀)는 서로 보기로 안 냄 — 뱀 문제에 '느릿느릿'이 나오면 헷갈림
+  const SLOW = ['거북이', '달팽이', '뱀'];
+  const moveOthers = (it) => MOVE.filter((x) => x !== it && !(SLOW.includes(x[1]) && SLOW.includes(it[1])));
   const PUNCT = {
     '.': ['나는 아침에 우유를 마셨어요', '포포가 당근을 먹어요', '오늘은 날씨가 맑습니다', '동생과 공원에 갔어요', '나는 그림 그리기를 좋아해요', '우리 집 강아지는 하얗습니다'],
     '?': ['너는 무슨 색을 좋아하니', '지금 몇 시예요', '같이 놀러 갈래', '이 책은 누구 거야', '점심에 무엇을 먹었니', '내일 비가 올까요'],
@@ -250,9 +253,9 @@ const QS = (() => {
     move() {
       const it = pick(MOVE);
       if (Math.random() < 0.5) {
-        return mk({ key: 'km' + it[1], subj: 'k', text: `'${it[2]}' 움직이는 동물은?`, speak: `${it[2]} 움직이는 동물은?`, answer: it[0], wrong: shuffle(MOVE.filter((x) => x !== it)).slice(0, 2).map((x) => x[0]), big: true, emoji: true, explain: `${it[0]} ${it[1]} : ${it[2]}` });
+        return mk({ key: 'km' + it[1], subj: 'k', text: `'${it[2]}' 움직이는 동물은?`, speak: `${it[2]} 움직이는 동물은?`, answer: it[0], wrong: shuffle(moveOthers(it)).slice(0, 2).map((x) => x[0]), big: true, emoji: true, explain: `${it[0]} ${it[1]} : ${it[2]}` });
       }
-      return mk({ key: 'kM' + it[1], subj: 'k', text: `${josa(it[1], '은', '는')} 어떻게 움직일까요?`, visual: `<div class="bigemo">${it[0]}</div>`, answer: it[2], wrong: shuffle(MOVE.filter((x) => x !== it)).slice(0, 2).map((x) => x[2]), big: true, explain: `${it[1]} : ${it[2]}` });
+      return mk({ key: 'kM' + it[1], subj: 'k', text: `${josa(it[1], '은', '는')} 어떻게 움직일까요?`, visual: `<div class="bigemo">${it[0]}</div>`, answer: it[2], wrong: shuffle(moveOthers(it)).slice(0, 2).map((x) => x[2]), big: true, explain: `${it[1]} : ${it[2]}` });
     },
     punct() {
       const p = pick(['.', '?', '!']);
